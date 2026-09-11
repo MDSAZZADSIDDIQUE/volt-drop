@@ -11,6 +11,7 @@ export const messages = {
     checking: 'Checking the API…',
     up: 'The API is up',
     unreachable: "Can't reach the API",
+    checkAgain: 'Check again',
   },
 } as const;
 

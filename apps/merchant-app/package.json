@@ -1,11 +1,11 @@
 {
-  "name": "@voltdrop/customer-app",
+  "name": "@voltdrop/merchant-app",
   "version": "0.0.0",
   "private": true,
-  "description": "VoltDrop customer app for iOS and Android (Expo SDK 57, spec §4). Product screens arrive in M7.",
+  "description": "VoltDrop merchant app for iOS and Android (Expo SDK 57, spec §4). Product screens arrive in M6 (ADR-0011).",
   "main": "expo-router/entry",
   "scripts": {
-    "dev": "expo start --port 8081",
+    "dev": "expo start --port 8082",
     "build": "expo export --platform android --platform ios --output-dir dist",
     "typecheck": "tsc -p tsconfig.json",
     "lint": "eslint . --max-warnings 0"

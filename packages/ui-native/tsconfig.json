@@ -1,0 +1,7 @@
+{
+  "extends": "@voltdrop/config/tsconfig/bundler.json",
+  "compilerOptions": {
+    "noEmit": true
+  },
+  "include": ["src", "nativewind-env.d.ts"]
+}

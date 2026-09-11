@@ -11,7 +11,7 @@ Where the VoltDrop build stands. Updated after every step, so a fresh session ca
 | Step | Status | Notes |
 |---|---|---|
 | 1. Repository and toolchain | Done | pnpm 11.26.0 workspace, Turborepo, shared TS/ESLint/Prettier config, lefthook (format, affected typecheck, Conventional Commits), dependency-cruiser rules |
-| 2. `packages/domain` | In progress | |
+| 2. `packages/domain` | Done | Money, VAT, allocation, formatting, UUIDv7 ids, human references, state machines, shared schemas. 84 tests including an exhaustive VAT check over 3 million amounts; 100% statement, branch, function and line coverage (ADR-0012) |
 | 3. Local infrastructure | Not started | |
 | 4. Configuration | Not started | |
 | 5. API skeleton (5a spike first) | Not started | |

@@ -12,7 +12,7 @@
     "./tsconfig/bundler.json": "./tsconfig/bundler.json"
   },
   "scripts": {
-    "lint": "eslint ."
+    "lint": "eslint . --max-warnings 0"
   },
   "dependencies": {
     "@eslint/js": "10.0.1",

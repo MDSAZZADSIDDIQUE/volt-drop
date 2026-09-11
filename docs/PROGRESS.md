@@ -13,8 +13,8 @@ Where the VoltDrop build stands. Updated after every step, so a fresh session ca
 | 1. Repository and toolchain | Done | pnpm 11.26.0 workspace, Turborepo, shared TS/ESLint/Prettier config, lefthook (format, affected typecheck, Conventional Commits), dependency-cruiser rules |
 | 2. `packages/domain` | Done | Money, VAT, allocation, formatting, UUIDv7 ids, human references, state machines, shared schemas. 84 tests including an exhaustive VAT check over 3 million amounts; 100% statement, branch, function and line coverage (ADR-0012) |
 | 3. Local infrastructure | Done | Docker Compose: PostgreSQL 18 with PostGIS 3.6.4 and pgvector 0.8.6, Valkey 9.1, Typesense 30.2, SeaweedFS 4.46 (S3), Mailpit, optional Metabase. Bucket and CORS setup. The S3 smoke test (presigned PUT, size-limited presigned POST, CORS) passes |
-| 4. Configuration | In progress | |
-| 5. API skeleton (5a spike first) | Not started | |
+| 4. Configuration | Done | zod schema for every spec §18 variable plus `API_PORT` and `LOG_LEVEL`, with conditional provider rules and production guards. Local defaults mean a fresh clone needs no `.env`. Errors list keys, never values. `.env.example` documents everything |
+| 5. API skeleton (5a spike first) | In progress | |
 | 6. Database, jobs and platform tables | Not started | |
 | 7. OpenAPI and the generated client | Not started | |
 | 8. App and UI package scaffolds | Not started | |

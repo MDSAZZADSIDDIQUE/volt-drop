@@ -1,0 +1,24 @@
+{
+  "name": "@voltdrop/api",
+  "version": "0.0.0",
+  "private": true,
+  "description": "VoltDrop API and worker: a NestJS modular monolith (spec §4, §5).",
+  "type": "module",
+  "scripts": {
+    "typecheck": "tsc -p tsconfig.json",
+    "lint": "eslint . --max-warnings 0",
+    "test": "vitest run"
+  },
+  "dependencies": {
+    "@voltdrop/domain": "workspace:*",
+    "zod": "4.6.1"
+  },
+  "devDependencies": {
+    "@types/node": "24.13.4",
+    "@voltdrop/config": "workspace:*",
+    "eslint": "10.10.0",
+    "typescript": "6.0.3",
+    "vite": "8.2.2",
+    "vitest": "4.1.11"
+  }
+}

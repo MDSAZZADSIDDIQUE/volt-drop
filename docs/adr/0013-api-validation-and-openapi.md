@@ -31,6 +31,11 @@ NestJS 12 (released 27 August 2026) validates Standard Schema values, which zod 
    - `instance` is the request's correlation id.
    - Unexpected errors are logged (redacted) and answered with a generic 500.
 6. **Testing.** A small dev-only utility (`@readme/openapi-parser`, MIT) validates the served document against the OpenAPI 3.1 schema in the end-to-end tests.
+7. **Operation ids.** Every route sets `@ApiOperation({ operationId })` in verb-noun form, for example `getHealth`. It names the generated client's function (`getHealth`) and hook (`useGetHealth`), which all five apps use, so Nest's default (`HealthController_health_v1`) would leak controller names into their code. The end-to-end tests fail if any operation keeps the default.
+8. **The client** (M0 step 7) lives in `packages/api-client`.
+   - `pnpm api:generate` builds the API, writes `openapi.json` without listening or connecting to anything, then runs orval.
+   - orval generates fetch functions and TanStack Query v5 hooks into `src/generated/`. Every request goes through one hand-written transport, `apiFetch`, which throws a typed `ApiProblem` for any error response.
+   - The output carries no timestamp, and regenerating an unchanged API gives identical files, so CI can fail on any difference.
 
 ## Spike outcome (2026-09-11)
 
@@ -48,10 +53,11 @@ The compiled server also starts and serves the same routes.
 - No extra validation library. One schema drives validation, the document and, through orval, the typed client.
 - NestJS 12 is pure ESM, so the API compiles to ES modules with `tsc`. Decorator metadata comes from `emitDecoratorMetadata` (tsc) and from SWC in tests.
 - zod issue messages are passed to clients as they are. They describe the rule broken, never the submitted value.
-- `TODO(M0 step 7)`: generate `openapi.json` and the orval client from this document, with a CI drift check.
+- A change to a route's schema or operation id changes the client. Developers run `pnpm api:generate` and commit both `openapi.json` and `src/generated/`.
 
 ## Alternatives considered
 
 - **NestJS 11 + nestjs-zod.** Proven, but it adds a dependency and a NestJS major upgrade in the middle of the build.
 - **class-validator DTOs.** The spec requires zod at every boundary, and DTOs would duplicate the shared schemas in `packages/domain`.
 - **`zod-openapi` for conversion.** Another dependency; zod v4's built-in converter already targets JSON Schema 2020-12.
+- **An `operationIdFactory` that derives names from method names.** It saves one decorator per route, but two controllers with a `list` method would collide, and the names would change whenever a method is renamed.

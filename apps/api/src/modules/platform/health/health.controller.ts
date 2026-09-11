@@ -1,5 +1,5 @@
 import { Controller, Get } from '@nestjs/common';
-import { ApiOkResponse, ApiTags } from '@nestjs/swagger';
+import { ApiOkResponse, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { z } from 'zod';
 import { Public } from '../../access/index.js';
 
@@ -12,6 +12,7 @@ export type Health = z.infer<typeof HealthSchema>;
 export class HealthController {
   @Get()
   @Public()
+  @ApiOperation({ operationId: 'getHealth', summary: 'Liveness' })
   @ApiOkResponse({ description: 'The API process is running.', standardSchema: HealthSchema })
   health(): Health {
     return { status: 'ok' };

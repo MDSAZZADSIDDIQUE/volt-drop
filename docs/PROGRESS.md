@@ -16,7 +16,7 @@ Where the VoltDrop build stands. Updated after every step, so a fresh session ca
 | 4. Configuration | Done | zod schema for every spec §18 variable plus `API_PORT` and `LOG_LEVEL`, with conditional provider rules and production guards. Local defaults mean a fresh clone needs no `.env`. Errors list keys, never values. `.env.example` documents everything |
 | 5. API skeleton (5a spike first) | Done | NestJS 12 on Fastify (ESM). Zod validation through Standard Schema, and OpenAPI 3.1 from the same schemas (ADR-0013). RFC 9457 problem details. pino with redaction and correlation ids. OpenTelemetry preload. Swagger UI at `/docs` outside production. Deny-by-default route declarations. `/v1/health` |
 | 6. Database, jobs and platform tables | Done | Migrations 0000–0002 (PostGIS and pgvector; the platform tables; the append-only trigger on `policy_versions` and the version 1 policy seeds); `pnpm db:migrate`; transactions that join an open one; `PolicyService`; `FeatureFlagService` (ADR-0016); `JobQueue` and the worker process on Graphile Worker; the transactional outbox with exactly-once handler deliveries (ADR-0015); `@Idempotent()` (ADR-0014); `GET /v1/ready`. 75 unit and end-to-end tests and 37 integration tests (Testcontainers) pass. Two intermittent test failures were traced to races in the tests, not the product, and fixed: the outbox retry test read a job before Graphile Worker (which records failures without awaiting them) had written its error; and the step 5 body-limit test could hit ECONNRESET before reading the 413, so that request is now sent in memory |
-| 7. OpenAPI and the generated client | Not started | |
+| 7. OpenAPI and the generated client | Done | `pnpm api:generate` builds the API, writes `packages/api-client/openapi.json` without listening or connecting to anything, then runs orval 8.31.0: fetch functions and TanStack Query v5 hooks in `src/generated/`, all going through one transport (`apiFetch`) that throws a typed `ApiProblem`. Every route sets an explicit operation id (`getHealth`, so the hook is `useGetHealth`), enforced by a test (ADR-0013). Regenerating an unchanged API gives identical files, so CI can fail on drift; adding that check to CI is step 9. 8 client tests pass |
 | 8. App and UI package scaffolds | Not started | |
 | 9. CI | Not started | |
 | 10. Claude Code setup | Not started | |
@@ -30,6 +30,7 @@ Recorded as `TODO(M<n>)` in the code or the ADRs, and listed here.
 - `TODO(M2)`: sign-in and permission checks; every permissioned route answers 401 until then (`access.guard.ts`).
 - `TODO(M2)`: audit entries for policy and flag changes (invariant 8).
 - `TODO(M2)`: idempotency keys scoped to the signed-in caller; until then all callers share one scope.
+- `TODO(M2)`: the API client sends the session or bearer token (`packages/api-client/src/fetcher.ts`).
 - `TODO(M4)`: the ObjectStore adapter must send S3 checksums only when required (ADR-0010).
 - `TODO(M5)`: late authorisation, the tip split and delivery-fee handling on partial fulfilment (ADR-0004).
 - `TODO(M8)`: pass each trip's tip share to the delivery provider (ADR-0004).
@@ -53,5 +54,5 @@ Recorded as `TODO(M<n>)` in the code or the ADRs, and listed here.
 
 ## Next steps
 
-1. Step 7: generate the OpenAPI document and the typed client (orval), with a drift check.
-2. Step 8: the app and UI package scaffolds.
+1. Step 8: the app and UI package scaffolds (customer-web, merchant-portal, admin, customer-app, merchant-app; ui-tokens, ui-web, ui-native; i18n).
+2. Step 9: CI, including the OpenAPI drift check (`pnpm api:generate`, then `git diff --exit-code packages/api-client`).

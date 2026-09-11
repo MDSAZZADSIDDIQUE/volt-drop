@@ -57,6 +57,7 @@ Details that don't affect architecture, money, compliance, security or retention
 | Feature flags: when a caller's user segments disagree, disabled wins | ADR-0016 | M0 |
 | Readiness needs PostgreSQL (fully migrated) and Valkey; without Typesense the API reports itself `degraded` but keeps taking traffic | M0 plan §6 | M0 |
 | Policy keys follow ADR-0004's naming (`area.snake_case_name`); version 1 of five M0 policies is seeded by migration with the spec v1.1 §3 defaults | M0 plan step 6 | M0 |
+| Every route sets an explicit verb-noun operation id (`getHealth`), which names the generated client's functions and hooks (`useGetHealth`) | ADR-0013 | M0 |
 
 ## Answered
 

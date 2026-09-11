@@ -165,6 +165,19 @@ describe('API skeleton', () => {
     expect(document.components?.schemas).toHaveProperty('Health');
     expect(document.components?.schemas).toHaveProperty('Readiness');
 
+    // Operation ids name the generated client's functions and hooks, so each real route sets its
+    // own (for example getHealth) rather than Nest's default, HealthController_health_v1. The
+    // test-only controllers above live under /v1/test and are left out.
+    const operationIds = Object.entries(document.paths)
+      .filter(([path]) => !path.startsWith('/v1/test/'))
+      .flatMap(([, pathItem]) =>
+        Object.values(pathItem as Record<string, { operationId?: string }>).map(
+          (operation) => operation.operationId ?? '(none)',
+        ),
+      );
+    expect(operationIds).toEqual(expect.arrayContaining(['getHealth', 'getReadiness']));
+    expect(operationIds.filter((id) => !/^[a-z][A-Za-z0-9]*$/.test(id))).toEqual([]);
+
     // The validator dereferences in place, so give it a copy.
     const result = await validate(
       structuredClone(document) as unknown as Parameters<typeof validate>[0],

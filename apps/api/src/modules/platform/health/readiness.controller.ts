@@ -1,5 +1,10 @@
 import { Controller, Get } from '@nestjs/common';
-import { ApiOkResponse, ApiServiceUnavailableResponse, ApiTags } from '@nestjs/swagger';
+import {
+  ApiOkResponse,
+  ApiOperation,
+  ApiServiceUnavailableResponse,
+  ApiTags,
+} from '@nestjs/swagger';
 import { z } from 'zod';
 import { PROBLEMS, ProblemException } from '../../../core/problems/problem.js';
 import { Public } from '../../access/index.js';
@@ -28,6 +33,7 @@ export class ReadinessController {
 
   @Get()
   @Public()
+  @ApiOperation({ operationId: 'getReadiness', summary: 'Readiness' })
   @ApiOkResponse({
     description: 'Ready to take traffic. "degraded" means search (Typesense) is down.',
     standardSchema: ReadinessSchema,

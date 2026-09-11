@@ -8,6 +8,7 @@ pnpm-lock.yaml
 **/coverage
 # Generated code is never edited or reformatted by hand (spec §5).
 packages/api-client/src/generated
+packages/api-client/openapi.json
 apps/api/drizzle/meta
 # Markdown keeps its authored layout; Prettier would realign every table.
 **/*.md

@@ -59,6 +59,7 @@ Details that don't affect architecture, money, compliance, security or retention
 | Policy keys follow ADR-0004's naming (`area.snake_case_name`); version 1 of five M0 policies is seeded by migration with the spec v1.1 §3 defaults | M0 plan step 6 | M0 |
 | Every route sets an explicit verb-noun operation id (`getHealth`), which names the generated client's functions and hooks (`useGetHealth`) | ADR-0013 | M0 |
 | Client apps read the API address from `EXPO_PUBLIC_API_BASE_URL`, `NEXT_PUBLIC_API_BASE_URL` or `VITE_API_BASE_URL`, because each bundler only exposes its own prefix; documented in `.env.example` | M0 plan step 8 | M0 |
+| No `eslint-plugin-jsx-a11y` yet: its newest release (6.10.2) doesn't support ESLint 10. Components are tested for roles, names, keyboard use and focus instead, and the plugin is re-checked before M1 | M0 plan step 8 | M0 |
 
 ## Answered
 

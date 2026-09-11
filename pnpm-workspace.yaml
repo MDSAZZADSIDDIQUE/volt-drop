@@ -20,3 +20,7 @@ allowBuilds:
   # Denied: optional native speed-ups for SSH Docker hosts, pulled in by testcontainers; not needed.
   cpu-features: false
   ssh2: false
+  # Denied: its install script only compiles from source when npm_config_build_from_source is set;
+  # the binary ships prebuilt as an optional dependency (@parcel/watcher-win32-x64 and so on).
+  # Pulled in by next-intl.
+  '@parcel/watcher': false

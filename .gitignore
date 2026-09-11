@@ -19,6 +19,8 @@ apps/*/android/
 apps/*/ios/
 # Written by Expo on start; apps commit their own type references instead
 expo-env.d.ts
+# Written by Next.js (next typegen, dev and build)
+next-env.d.ts
 
 # Environment files and secrets (spec §12). Only .env.example is committed.
 .env

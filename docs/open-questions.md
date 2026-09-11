@@ -2,7 +2,7 @@
 
 The live list of questions the spec can't answer by itself. Each entry says who needs to answer, what it blocks, and where it came from. When a question is answered, record the answer (or the ADR that captures it), and move the entry to "Answered" at the bottom.
 
-Last updated: 2026-09-11 (kickoff).
+Last updated: 2026-09-12 (M0 step 10).
 
 ## For the solicitor
 
@@ -63,6 +63,8 @@ Details that don't affect architecture, money, compliance, security or retention
 | The spec's CORS allowlist (§12) is exactly the three web apps' origins from the environment (`CUSTOMER_WEB_URL`, `ADMIN_URL`, `MERCHANT_PORTAL_URL`), with no credentials until sign-in (M2). `AUTH_TRUSTED_ORIGINS` stays for the auth library | M0 plan step 8 | M0 |
 | Turbo runs cached tasks in strict environment mode. The apps' public variables (`NEXT_PUBLIC_*`, `VITE_*`, `EXPO_PUBLIC_*`) need no declaration: Turbo's framework inference hashes and passes them (checked with a dry run). The telemetry opt-outs and `CI` pass through without affecting cache keys. `dev` and `test:int` are never cached, so they run in loose mode and see the whole shell environment | M0 plan step 9 | M0 |
 | CI runs on `ubuntu-latest` only, with actions pinned to commit SHAs, `permissions: contents: read`, and superseded runs cancelled, because the private repository's Actions minutes are metered | M0 plan step 9 | M0 |
+| The Claude Code file protection goes slightly beyond ADR-0009's minimum. The hook blocks a tool call it can't read (it fails closed). Reads of `.env.*.local` files are denied as well as `.env` and `.env.local`. The protected patterns that have no exceptions also get `Edit` deny rules, which cover shell redirections too | ADR-0009 (implementation notes) | M0 |
+| When an AI agent runs `next dev`, Next.js writes `AGENTS.md`, and a `CLAUDE.md` that imports it, into `apps/customer-web`; there's no setting to turn this off. Both are committed unchanged: they point agents at the docs for the installed Next.js version, and the web rules refer to them | M0 plan step 10 | M0 |
 
 ## Answered
 

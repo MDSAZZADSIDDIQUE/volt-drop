@@ -34,8 +34,9 @@ next-env.d.ts
 *.tfstate
 *.tfstate.*
 
-# Claude Code personal files
+# Claude Code personal files, and scratch files such as review diffs
 .claude/settings.local.json
+.claude/tmp/
 CLAUDE.local.md
 
 # Operating system and editor files

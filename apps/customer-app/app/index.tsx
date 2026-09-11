@@ -1,19 +1,21 @@
 import { useGetHealth } from '@voltdrop/api-client';
 import { Text, View } from 'react-native';
+import { useTranslations } from 'use-intl';
 
-// M0 placeholder: proves the app builds, styles with NativeWind and reaches the API.
+// M0 placeholder: proves the app builds, styles with the design tokens and reaches the API.
 export default function Home() {
+  const t = useTranslations();
   const health = useGetHealth();
-  let status = 'Checking the API…';
+  let status = t('health.checking');
   if (health.isSuccess) {
-    status = 'The API is up';
+    status = t('health.up');
   } else if (health.isError) {
-    status = "Can't reach the API";
+    status = t('health.unreachable');
   }
   return (
-    <View className="flex-1 items-center justify-center bg-white p-6">
-      <Text className="text-2xl font-bold">VoltDrop</Text>
-      <Text className="mt-2 text-base">{status}</Text>
+    <View className="flex-1 items-center justify-center bg-background p-6">
+      <Text className="text-2xl font-bold text-foreground">{t('common.appName')}</Text>
+      <Text className="mt-2 text-base text-muted-foreground">{status}</Text>
     </View>
   );
 }

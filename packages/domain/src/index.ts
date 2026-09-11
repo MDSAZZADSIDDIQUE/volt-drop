@@ -16,3 +16,13 @@ export {
   type TransitionTable,
 } from './state-machine/state-machine.js';
 export { ProblemDetailsSchema, problemType, type ProblemDetails } from './schemas/problem.js';
+export {
+  CartPriceLock,
+  definePolicy,
+  IdempotencyReplayWindow,
+  PaymentConfirmationHold,
+  SEEDED_POLICIES,
+  StockReservationTtl,
+  StoreAcceptanceTimers,
+  type PolicyDefinition,
+} from './policies/policies.js';

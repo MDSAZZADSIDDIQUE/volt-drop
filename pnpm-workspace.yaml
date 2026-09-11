@@ -1,0 +1,11 @@
+packages:
+  - apps/*
+  - packages/*
+
+# Pin exact versions (spec §6).
+saveExact: true
+
+# pnpm refuses dependency install scripts unless they are reviewed here (strictDepBuilds is on by
+# default in pnpm 11). Add a package only after checking what its script does.
+allowBuilds:
+  lefthook: true

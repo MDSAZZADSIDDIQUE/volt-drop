@@ -1,0 +1,17 @@
+# Git hooks for every contributor, human or Claude (spec §4, §15).
+# Installed automatically by `pnpm install` (the root `prepare` script runs `lefthook install`).
+
+pre-commit:
+  parallel: true
+  jobs:
+    - name: format
+      glob: '*.{ts,tsx,js,jsx,mjs,cjs,json,yml,yaml,css}'
+      run: pnpm exec prettier --write --ignore-unknown {staged_files}
+      stage_fixed: true
+    - name: typecheck
+      run: pnpm exec turbo run typecheck --affected
+
+commit-msg:
+  jobs:
+    - name: conventional-commit
+      run: node scripts/check-commit-msg.mjs {1}

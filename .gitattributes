@@ -1,0 +1,16 @@
+# Store and check out text files with LF on every platform.
+# Development happens on Windows (core.autocrlf=true) while CI and production run Linux.
+* text=auto eol=lf
+
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.gif binary
+*.webp binary
+*.ico binary
+*.pdf binary
+*.zip binary
+*.woff binary
+*.woff2 binary
+*.ttf binary
+*.otf binary

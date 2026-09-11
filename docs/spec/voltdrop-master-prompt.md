@@ -3,7 +3,16 @@
 **Product:** VoltDrop, a UK technology quick-commerce marketplace
 **Document:** Phase 1 build specification and operating instructions
 **Audience:** Claude Code (primary); founder and reviewers (secondary)
-**Status:** v1.0, living document. Changes go through ADRs (see §0).
+**Status:** v1.1, living document. Changes go through ADRs (see §0 and the change log below).
+
+---
+
+## Change log
+
+| Version | Date | Changes | ADRs |
+|---|---|---|---|
+| v1.1 | 2026-09-11 | Kickoff amendments approved by the founder: the delivery fee is set by policy and locked with the cart; the quote caps the authorisation and the final charge follows the final fulfilment plan; payment-confirmation and partial-fulfilment rules; commission basis, platform-fee timing and half-open time windows; faulty-goods claims are never rejected on age alone; compliance additions (Data (Use and Access) Act 2025, Product Regulation and Metrology Act 2025, right-to-work wording); merchant UK-establishment status and legal review items; Claude Code file protection; production homes for Typesense and Metabase, and SeaweedFS replacing MinIO locally; the merchant app milestone now comes before the customer app | ADR-0002 to ADR-0011 |
+| v1.0 | 2026-09-11 | Initial specification | — |
 
 ---
 
@@ -122,16 +131,17 @@ All policy values live in versioned, audited configuration (`policy_versions`, �
 | Delivery promise | Show an ETA; target 60 minutes or less | ETA = store prep time + provider pickup and drop-off estimate |
 | Delivery provider | `uber_direct` in production; `mock` in development and tests | Behind the `DeliveryProvider` interface |
 | Store acceptance | Ring immediately; reminder push at 60 s; automated phone call at 120 s; auto-reject and re-route at 240 s | All timers configurable |
-| Stock reservation | 10 minutes from checkout start | Released on expiry, cancellation or payment failure |
-| Cart price lock | 30 minutes from adding an item | See invariant 5 in §7 |
-| Payment | Authorise at checkout; capture once every fulfilment is accepted or finally rejected (single partial capture) | Cancel the authorisation if nothing is accepted |
-| Delivery fee | One fee per order, derived from the provider quote by a fee rule (markup, minimum, maximum, free-delivery threshold, small-basket surcharge) | Shown as soon as an address is known; never first revealed at checkout |
+| Stock reservation | 10 minutes from checkout start; extended once when payment confirmation starts (including 3-D Secure), by a configurable hold | Released on expiry, cancellation or payment failure. An authorisation that arrives after its reservations lapsed follows §8.3 step 7 |
+| Cart price lock | 30 minutes from adding an item. The delivery fee shown for the address is locked with the cart for the same period | See invariant 5 in §7 |
+| Payment | Authorise the quote total at checkout; capture once every fulfilment is accepted or finally rejected (single partial capture). The capture is computed from the final fulfilment plan and never exceeds the quote in total or per line | Cancel the authorisation if nothing is accepted. See §8.4 |
+| Delivery fee | One fee per order, computed by a policy fee rule from the zone, a distance band for the address and the basket value (base fee, distance adjustment, minimum, maximum, free-delivery threshold, small-basket surcharge). Provider quotes set VoltDrop's cost, not the customer's fee | Shown as soon as an address is known, together with the free-delivery threshold and the small-basket surcharge rule; locked with the cart; never first revealed at checkout. Provider cost above the fee is monitored as margin (§8.3) |
 | Service fee | Disabled | If ever enabled, it must be folded into displayed item prices (§11.1) |
-| Commission | 15% of item gross per merchant, with category overrides | Per merchant plan |
-| Monthly platform fee | Per merchant plan; deducted from the first weekly settlement of each calendar month | Invoiced with VAT on the settlement statement |
-| Settlement | Weekly, Monday 00:00 to Sunday 23:59 Europe/London; statement generated Monday; transfer after admin approval | Negative balances carried forward |
-| Tips | 100% passed to the courier | Only offered if the delivery provider supports tip pass-through. Any lower share must be disclosed clearly before payment |
-| Consumer returns | Change of mind: 14 days after delivery. Faulty: full refund within 30 days; repair, replacement or escalation up to 6 months | Category exclusions for unsealed software or media and hygiene-sealed items |
+| Commission | 15% of item gross (the VAT-inclusive item price) per merchant, with category overrides. VAT is charged on top of the commission | Per merchant plan. Example: a £100.00 item carries £15.00 commission plus £3.00 VAT |
+| Monthly platform fee | Per merchant plan; deducted on the first settlement statement generated in each calendar month (Europe/London) | Invoiced with VAT on the settlement statement |
+| Settlement | Weekly periods from Monday 00:00 up to, but not including, the next Monday 00:00, Europe/London; statement generated Monday; transfer after admin approval | Negative balances carried forward |
+| Tips | 100% passed to the courier. When an order has several courier trips, the tip is split evenly across them; the share for a trip that doesn't go ahead is not captured | Only offered if the delivery provider supports tip pass-through. Any lower share must be disclosed clearly before payment |
+| Partial fulfilment | The delivery fee is charged in full when at least one fulfilment goes ahead, and refunded if nothing is delivered | Configurable. See §8.4 |
+| Consumer returns | Change of mind: 14 days after delivery. Faulty: full refund within 30 days; after that, repair or replacement, then a refund if that fails. After 6 months the consumer must show the fault; claims can still be made for up to 6 years (England and Wales) or 5 years (Scotland). A faulty claim is never rejected on age alone: older claims go to review | Category exclusions for unsealed software or media and hygiene-sealed items |
 | Business returns | Change of mind: 24 hours after delivery. Faulty: 30 days | Contractual terms; implied quality terms still apply |
 | Return delivery cost | Consumer change of mind: customer pays (disclosed before purchase). Faulty, wrong or damaged: merchant pays | Configurable per reason |
 | Refund without return | Suggested when item value is under £15 or return cost exceeds item value | The merchant decides |
@@ -140,6 +150,7 @@ All policy values live in versioned, audited configuration (`policy_versions`, �
 | Courier suitability | Items must weigh 7 kg or less and fit a courier bag (`courier_ok`) | Oversized items excluded in Phase 1 |
 | Prohibited items | Loose lithium cells, e-bike and e-scooter batteries, second-hand or refurbished goods, anything without required safety marking | Admin-maintained list |
 | Currency, locale, time | GBP, en-GB, Europe/London | Store UTC; apply business rules in Europe/London |
+| Time windows | Every period is half-open: it includes its start and excludes its end. Day 1 is the day after delivery (Europe/London), and an N-day window closes at 00:00 Europe/London at the start of day N+1. Hour-based windows (for example 24 hours) run from the exact `delivered_at` | Applies to return windows, SLAs and settlement weeks |
 
 ---
 
@@ -160,7 +171,7 @@ All policy values live in versioned, audited configuration (`policy_versions`, �
 | Events | Transactional outbox → dispatcher job → idempotent handlers | Search indexing, notifications, analytics |
 | Cache and live state | Valkey (Redis-compatible) | Never the source of truth |
 | Realtime | Socket.IO with Redis adapter; namespaces `customer`, `merchant`, `admin` | Authenticated connections only |
-| Search | Typesense: typo tolerance, facets, geo filters, `group_by`, built-in embeddings for hybrid search | Fed from outbox events |
+| Search | Typesense: typo tolerance, facets, geo filters, `group_by`, built-in embeddings for hybrid search | Fed from outbox events. Production: Typesense Cloud (ADR-0010); no personal data in the index |
 | Auth | Better Auth mounted in the API: email OTP, phone OTP, organisations, two-factor, admin SSO via OIDC, Expo client support | Verify plugin APIs; write an ADR before replacing it |
 | Dates and time zones | date-fns with `@date-fns/tz` | Europe/London for business rules |
 | Mobile | Expo (React Native) with Expo Router, EAS Build/Submit/Update, NativeWind, TanStack Query | Two apps: `customer-app`, `merchant-app` |
@@ -170,7 +181,7 @@ All policy values live in versioned, audited configuration (`policy_versions`, �
 | Delivery | `DeliveryProvider` interface: `UberDirectProvider`, `MockCourierProvider` | §10 |
 | Maps and geo | PostGIS for zones; Google Maps Platform (Routes API for ETAs, Maps SDKs for display) behind `GeoProvider`; Terra Draw or GeoJSON import for zone editing | Mock provider in development |
 | Addresses | Ideal Postcodes (Royal Mail PAF) behind `AddressLookup` | Fixture postcodes in development |
-| Files | S3 (MinIO locally), presigned uploads, `sharp` for resizing and metadata stripping | Separate private bucket for sensitive documents |
+| Files | S3 (SeaweedFS locally, ADR-0010), presigned uploads, `sharp` for resizing and metadata stripping | Separate private bucket for sensitive documents |
 | Email, push, voice | Postmark with React Email templates (Mailpit locally); Expo push service (FCM/APNs); Twilio SMS and voice | All behind interfaces |
 | PDFs | `@react-pdf/renderer` | Receipts, VAT invoices, settlement statements |
 | Resilience | `cockatiel` for timeouts, retries and circuit breakers | Used by every adapter |
@@ -178,9 +189,9 @@ All policy values live in versioned, audited configuration (`policy_versions`, �
 | Product data | Icecat behind `ProductDataSource`; fixture catalogue in development | §10 |
 | Observability | pino with PII redaction, OpenTelemetry, Sentry (API, web, mobile) | §13 |
 | Product analytics | PostHog (EU cloud), loaded only after consent on web | Feature flags stay DB-backed in Phase 1 |
-| Reporting | Metabase on a read-only replica and reporting views | |
-| Infrastructure | AWS eu-west-2: ECS Fargate, RDS, ElastiCache (Valkey), S3, CloudFront + WAF, Secrets Manager, KMS; Terraform; GitHub Actions with OIDC | No Kubernetes |
-| Local development | Docker Compose: Postgres (PostGIS + pgvector), Valkey, Typesense, MinIO, Mailpit, optional Metabase; Stripe CLI for webhooks | One command up and down |
+| Reporting | Metabase on a read-only replica and reporting views | Runs on ECS Fargate with its own application database in RDS (ADR-0010) |
+| Infrastructure | AWS eu-west-2: ECS Fargate, RDS, ElastiCache (Valkey), S3, CloudFront + WAF, Secrets Manager, KMS; Terraform; GitHub Actions with OIDC. Search runs on Typesense Cloud (ADR-0010) | No Kubernetes |
+| Local development | Docker Compose: Postgres (PostGIS + pgvector), Valkey, Typesense, SeaweedFS (S3 API), Mailpit, optional Metabase; Stripe CLI for webhooks | One command up and down |
 | Testing | Vitest (with SWC for Nest decorators), Testcontainers, supertest, Playwright + axe, Maestro, k6, fast-check | §14 |
 | Git hooks | lefthook: lint-staged formatting and affected-package typecheck on pre-commit | Applies to humans and Claude alike |
 
@@ -320,7 +331,7 @@ Design the exact schemas yourself. These entities, fields and invariants are req
 - `waitlist_entries` (email, postcode, consent record).
 
 ### Merchants and stores
-- `merchants` (organisation, trading name, status, commission plan, platform fee plan, Stripe account ID, HMRC due-diligence data encrypted where sensitive, WEEE take-back arrangement) and `merchant_documents`.
+- `merchants` (organisation, trading name, status, UK-establishment status with evidence, commission plan, platform fee plan, Stripe account ID, HMRC due-diligence data encrypted where sensitive, WEEE take-back arrangement) and `merchant_documents`.
 - `stores` (merchant, address, location point, opening hours, prep time in minutes, status `online|paused|closed`, capabilities such as printer and hardware scanner).
 
 ### Catalogue and inventory
@@ -331,12 +342,13 @@ Design the exact schemas yourself. These entities, fields and invariants are req
 - `stock_reservations` (offer, checkout, quantity, `expires_at`, status) and `stock_movements` (append-only: delta, reason, reference).
 
 ### Checkout and orders
-- `carts` and `cart_items` (product, quantity, `display_price_minor` shown when added, price-lock expiry).
+- `carts` (address, the delivery fee shown for it and its lock expiry) and `cart_items` (product, quantity, `display_price_minor` shown when added, price-lock expiry).
 - `checkouts` (cart snapshot, routing plan, quote, payment intent, status, expiry).
 - `quotes` (immutable: lines, VAT breakdown, delivery fee, tip, totals, policy versions, inputs).
 - `orders` (buyer user, organisation, PO reference, address snapshot, contact, totals, status, human reference).
 - `fulfilments` (order, store, status, acceptance deadline, bag code).
 - `order_lines` (fulfilment, product, offer, quantity, unit gross, VAT rate, serial required, status).
+- `fulfilment_plan_revisions` (order, reason, lines moved, previous and new store and offer, previous and new unit price, ETA change, actor, timestamp): one row per re-route. The final plan is the quote plus its revisions.
 
 ### Delivery
 - `delivery_jobs` (fulfilment or return case, direction `forward|reverse`, provider, provider reference, status, provider cost, customer fee, pickup and drop-off snapshots, tracking URL, proof of delivery: PIN verified, photo key, timestamps) and `delivery_events`.
@@ -358,7 +370,7 @@ Design the exact schemas yourself. These entities, fields and invariants are req
 
 **Posting examples** (merchants sell the goods; VoltDrop sells delivery and charges fees):
 - Capture: debit `stripe_clearing` (total) · credit `merchant_payable` (goods gross) · credit `revenue_delivery` (delivery fee net) · credit `vat_output` (VAT on delivery fee) · credit `tips_payable` (tip).
-- Commission: debit `merchant_payable` (commission gross) · credit `revenue_commission` (net) · credit `vat_output` (VAT).
+- Commission: debit `merchant_payable` (commission plus its VAT) · credit `revenue_commission` (commission) · credit `vat_output` (VAT on the commission). The commission is the plan rate × item gross (§3).
 - Stripe fee: debit `expense_payment_fees` · credit `stripe_clearing`.
 - Delivery provider cost: debit `expense_delivery_provider` · credit `delivery_provider_payable`.
 - Merchant transfer: debit `merchant_payable` · credit `stripe_clearing`.
@@ -376,9 +388,9 @@ Treat the tax treatment above as a starting assumption to confirm with an accoun
 1. `0 ≤ stock_reserved ≤ stock_on_hand` for every offer.
 2. Every journal entry's postings sum to zero.
 3. Captured ≤ authorised; refunded ≤ captured, per payment and per line.
-4. A quote never changes after creation. Each order references exactly one quote.
-5. A customer is never charged more than the price displayed when the item was added to the cart (within the price lock) unless they explicitly confirm a new total before paying.
-6. Return windows are computed from `delivered_at` in Europe/London.
+4. A quote never changes after creation. Each order references exactly one quote, which caps the authorisation. Re-routes are recorded as fulfilment plan revisions, and the capture, computed from the final plan, never exceeds the quote in total or per line.
+5. A customer is never charged more than the price displayed when the item was added to the cart, or more than the delivery fee displayed for their address (within the lock), unless they explicitly confirm a new total before paying.
+6. Return windows are computed from `delivered_at` in Europe/London, using the half-open day rule in §3 (Time windows).
 7. A serial-required line cannot be marked collected without a dispatch serial record.
 8. Every admin or merchant action that changes money, stock, status or policy writes an audit entry.
 9. A merchant's settlement net payable equals its ledger postings for the period plus the opening balance.
@@ -393,23 +405,23 @@ Postcode → address lookup → customer picks an address → geocode → resolv
 ### 8.2 Search and product display
 - Index one Typesense document per **offer**, with denormalised product fields (title, brand, attributes, category), store ID, store location, price, available stock and status.
 - Query: find the stores that serve the customer's zone and are open → filter offers to those stores with available stock above zero and active status → `group_by` product → one card per product.
-- Displayed price = the lowest price among eligible offers whose store can meet the delivery promise. Show "Delivery £X, about N min" as soon as the address is known.
+- Displayed price = the lowest price among eligible offers whose store can meet the delivery promise. Show "Delivery £X, about N min" as soon as the address is known. £X comes from the policy fee rule for the address (§3), and the free-delivery threshold and small-basket surcharge are stated alongside it.
 - Facets come from category attribute schemas (connector, wattage, length, standard, brand, price). Maintain synonyms: lead/cable, type-c/usb-c, charger/power adapter, ethernet/network cable, and so on.
 - If Typesense is unavailable, fall back to a limited Postgres full-text search.
 
 ### 8.3 Cart, routing and checkout
-1. **Cart:** each line stores `display_price_minor` and a price-lock expiry.
+1. **Cart:** each line stores `display_price_minor` and a price-lock expiry. The cart also stores the delivery fee shown for the address and locks it for the same period.
 2. **Routing** (`checkout/routing`): the eligible offers for a line are those at in-zone, open, online stores with stock at or above the quantity, a price at or below the line's display price, and an ETA within the promise. Choose the assignment that minimises, in order: number of stores, latest ETA, total price. Greedy set cover with exhaustive search for small baskets is fine. Document the algorithm and test it with fixtures and property tests. If no assignment respects the display prices, show the customer the new total and require confirmation.
-3. **Reserve** stock for every line atomically with a TTL. On conflict, re-plan once, then report which lines are unavailable.
-4. **Quote:** request a delivery quote per fulfilment, apply the delivery-fee rule, compute the VAT breakdown and optional tip, and persist an immutable quote.
+3. **Reserve** stock for every line atomically with a TTL. On conflict, re-plan once, then report which lines are unavailable. When payment confirmation starts (including 3-D Secure), extend the reservations once by the configured hold.
+4. **Quote:** take the locked delivery fee from the cart (recompute it, with customer confirmation, only if the lock has expired), request a delivery quote per fulfilment for ETA and cost, compute the VAT breakdown and optional tip, and persist an immutable quote. If the provider cost exceeds the fee by more than a configured margin, record it and alert operations; the customer's fee does not change.
 5. **Fraud checks** (§12) run before the payment is created.
 6. **Payment:** a Stripe PaymentIntent with manual capture for the quote total, confirmed with Payment Element or PaymentSheet (3-D Secure when required).
-7. **Order creation** happens on the authorisation webhook, not the client callback: create the order, fulfilments and lines, convert reservations, emit events, alert stores.
+7. **Order creation** happens on the authorisation webhook, not the client callback: create the order, fulfilments and lines, convert reservations, emit events, alert stores. If the authorisation arrives after its reservations lapsed, re-reserve; if stock is gone, re-route within the quote (§8.4); if that fails, cancel the authorisation and tell the customer.
 
 ### 8.4 Store acceptance, re-routing and capture
 - Each fulfilment gets an acceptance deadline (§3 timers). The store accepts or rejects with a reason: out of stock, damaged, can't prepare in time.
-- On rejection or timeout, try to re-route the affected lines to other stores at or below the charged price and within the promise. If the ETA gets materially worse (configurable threshold), tell the customer.
-- When every fulfilment is accepted or finally rejected, capture once for accepted lines plus delivery fee plus tip. If nothing was accepted, cancel the authorisation and notify the customer. Partial fulfilment is shown clearly on the order.
+- On rejection or timeout, try to re-route the affected lines to other stores at or below the quoted price and within the promise. Record each re-route as a fulfilment plan revision. The customer pays the new store's price when it is lower than the quoted price, and each merchant is paid its own offer price. If the ETA gets materially worse (configurable threshold), tell the customer.
+- When every fulfilment is accepted or finally rejected, capture once, computed from the final plan: the accepted lines, plus the delivery fee (charged in full when at least one fulfilment goes ahead; §3 Partial fulfilment), plus the tip shares for the courier trips that go ahead. The capture never exceeds the quote in total or per line. If nothing was accepted, cancel the authorisation and notify the customer. Partial fulfilment is shown clearly on the order.
 
 ### 8.5 Preparation and handover
 - Accepted → preparing: staff pick items; scanning the product barcode confirms the right item; serial-required lines need a serial scan (camera or hardware scanner).
@@ -426,6 +438,7 @@ Postcode → address lookup → customer picks an address → geocode → resolv
 ### 8.7 Returns, reverse delivery and inspection
 - **Doorstep refusal:** before PIN confirmation, the customer can refuse the item in the app (wrong item, visibly damaged, missing parts, or unopened and unwanted for consumers). The courier takes it back to the store through the provider's return flow, and a return case is created automatically.
 - **In-app return:** the customer selects lines and a reason (changed mind, faulty, wrong item, damaged, missing parts), adds photos (required for faulty or damaged) and a serial if required. The policy engine decides eligibility, allowed resolutions, deadlines and who pays for return delivery.
+- **Faulty claims by age:** a faulty claim is never rejected automatically because of its age. Within 30 days the consumer can reject the item for a full refund; after that the policy offers repair or replacement, then a refund if that fails; after 6 months the claim goes to review and the consumer must show the fault. Claims can be made for up to 6 years (England and Wales) or 5 years (Scotland).
 - **Merchant decision** (tablet or portal) within the SLA (default 24 hours within store hours): refund without return, return then inspect, replacement, reject with a reason, or escalate. A missed SLA escalates to admin automatically.
 - **Reverse delivery:** a `reverse` delivery job from the customer to the store through the same provider interface.
 - **Inspection:** a category checklist (powers on, physical condition, accessories complete, packaging, serial matches the dispatch record), condition grade and photos. Outcomes: full refund; partial refund with an itemised diminished-value deduction (consumer change of mind only); replacement; reject and send the goods back to the customer; escalate.
@@ -435,15 +448,15 @@ Postcode → address lookup → customer picks an address → geocode → resolv
 - The admin timeline shows the full chain: order → line → return case → reverse delivery → inspection → refund or replacement.
 
 ### 8.8 Merchant onboarding
-Application (business details, stores, categories) → Companies House lookup → document upload → Stripe-hosted onboarding (KYC) → HMRC due-diligence data → admin review and approval → store setup (hours, map pin, prep time) → device pairing (QR code with a single-use token) → go live (zone flag).
+Application (business details, stores, categories) → Companies House lookup → UK-establishment check (status and evidence recorded; applicants who are not UK-established are flagged for admin review) → document upload → Stripe-hosted onboarding (KYC) → HMRC due-diligence data → admin review and approval → store setup (hours, map pin, prep time) → device pairing (QR code with a single-use token) → go live (zone flag).
 
 ### 8.9 Listing products
 The merchant scans a GTIN in the merchant app or portal. If a canonical product exists, create or update the offer (price, stock); it goes live if the product is active and the merchant is approved. Otherwise, create a listing submission with product and box photos → enrichment pipeline (§8.12) → moderation queue → approve, merge into an existing product, or reject. Bulk price and stock updates by GTIN are available via CSV in the portal.
 
 ### 8.10 Weekly settlement
 Cron runs Monday 03:00 Europe/London:
-1. Compute each merchant's period from the ledger.
-2. Draft statements (PDF and CSV) showing sales, refunds, commission and platform fee with VAT, adjustments and carried-forward balance.
+1. Compute each merchant's period (Monday 00:00 up to, but not including, the next Monday 00:00, Europe/London) from the ledger.
+2. Draft statements (PDF and CSV) showing sales, refunds, commission and platform fee with VAT, adjustments and carried-forward balance. The first statement generated in each calendar month carries the monthly platform fee.
 3. Admin reviews and approves (bulk).
 4. Make one Stripe transfer per merchant, then mark paid. Negative balances carry forward.
 5. Notify merchants.
@@ -546,7 +559,7 @@ Every external dependency sits behind a VoltDrop interface with a production ada
 | Email | `Mailer` | Postmark | Mailpit (SMTP) | Transactional vs broadcast streams |
 | Push | `PushSender` | Expo push service (FCM/APNs) | Log sink | Android channels, high priority, custom sounds |
 | SMS and voice | `Telephony` | Twilio | Log sink | UK sender rules, voice call API |
-| Files | `ObjectStore` | S3 | MinIO | Presigned POST policies |
+| Files | `ObjectStore` | S3 | SeaweedFS (S3 API) | Presigned POST policies |
 | Accounting | `AccountingExport` | Xero-compatible manual journal CSV | Same | Import format |
 | Stock sync (later) | `InventorySync` | Interface only | — | — |
 | Identity checks (Phase 2) | `IdentityVerification` | Certified identity service provider | — | Home Office right-to-work rules |
@@ -560,6 +573,7 @@ Track every rule in `docs/compliance/register.md`: the rule, where it is enforce
 ### 11.1 Pricing transparency (Digital Markets, Competition and Consumers Act 2024)
 - Every price in an invitation to purchase (listings, search results, product page, cart, banners) includes all mandatory charges. No mandatory fee may appear for the first time at checkout.
 - The delivery fee is shown as soon as an address is known and stays consistent through checkout.
+- Wherever the delivery fee is shown, the free-delivery threshold and the small-basket surcharge rule are shown with it, so no fee appears for the first time later in the journey.
 - A customer service fee, if ever enabled, is folded into item prices.
 - Automated tests assert that the price on the listing equals the price charged in every golden scenario.
 
@@ -567,12 +581,12 @@ Track every rule in `docs/compliance/register.md`: the rule, where it is enforce
 - **Pre-contract information:** the selling merchant's identity and address on the product page and at checkout; VoltDrop identified as marketplace operator; total price; delivery; cancellation rights; who pays return costs.
 - **Order confirmation** on a durable medium (email with PDF).
 - **Change of mind:** 14 days from delivery, with category exceptions (unsealed software or media, hygiene-sealed goods once unsealed). Refund within 14 days of receiving the goods back or evidence of return. Diminished-value deductions only with itemised reasons.
-- **Faulty goods:** full refund within 30 days; after that, repair or replacement, or escalation. Within 6 months, the merchant must show the item wasn't faulty at delivery.
+- **Faulty goods:** full refund within 30 days; after that, repair or replacement, then a refund if that fails. Within 6 months, the merchant must show the item wasn't faulty at delivery; after that, the consumer must show the fault. Claims can be made for up to 6 years (England and Wales) or 5 years (Scotland), so a faulty claim is never rejected on age alone.
 - **Business buyers** follow the contractual terms in §3 plus implied quality terms.
 
-### 11.3 Privacy (UK GDPR, Data Protection Act 2018, PECR)
+### 11.3 Privacy (UK GDPR, Data Protection Act 2018, PECR, Data (Use and Access) Act 2025)
 - Record lawful bases and publish a privacy notice. Marketing needs a separate, recorded opt-in; every marketing message has an unsubscribe.
-- Web cookie consent before any non-essential cookies or analytics.
+- Web cookie consent before any non-essential cookies or analytics. Analytics stays consent-first even though the Data (Use and Access) Act 2025 adds a narrow exemption for statistics-only cookies.
 - Retention schedule in `docs/compliance/retention.md`, enforced by scheduled jobs:
   - courier location trails: 30 days;
   - delivery and return photos: 12 months, or until any dispute closes;
@@ -580,6 +594,9 @@ Track every rule in `docs/compliance/register.md`: the rule, where it is enforce
   - financial records: 6 years;
   - assistant transcripts: 30 days.
 - A DPIA draft covering location tracking, automated fraud decisions, store auto-rejects and AI features. Automated decisions that block orders or penalise stores must be reviewable by a human, with an appeal path.
+- **Data (Use and Access) Act 2025:**
+  - a data-protection complaints process (required since 19 June 2026): accept complaints through an electronic form and other channels, acknowledge them within 30 days, and record receipt, the steps taken and the outcome;
+  - the reformed rules on automated decision-making: tell people about significant automated decisions, and let them make representations, get human intervention and contest the decision.
 - Sub-processor list in `docs/compliance/subprocessors.md`.
 
 ### 11.4 Product safety and environment
@@ -587,15 +604,17 @@ Track every rule in `docs/compliance/register.md`: the rule, where it is enforce
 - Electrical items require confirmation of UKCA or CE marking. Connectable products (routers, smart devices) require the PSTI compliance fields, such as the minimum security update period.
 - Recall tool: block a product, notify affected buyers and report affected orders.
 - Capture each merchant's WEEE take-back arrangement and show take-back information to customers.
+- Watch item: the Product Regulation and Metrology Act 2025 lets the government impose product-safety duties on online marketplaces. Review the outcome of the 2026 consultation, and add the duties to the register when regulations are made.
 
 ### 11.5 Tax and platform reporting
 - Consumer prices are VAT-inclusive.
 - Merchants are the sellers of goods, so VAT receipts and invoices are generated in the merchant's name (plain receipts for non-VAT-registered merchants).
 - VoltDrop's own supplies (delivery fee, commission, platform fee) are invoiced by VoltDrop with VAT.
 - Capture seller due-diligence data for HMRC's digital platform reporting rules and provide an annual export.
+- Record each merchant's UK-establishment status. Under the online-marketplace VAT rules, a marketplace can become liable for the VAT on goods sold through it by sellers who are not UK-established; confirm the treatment with the accountant.
 
 ### 11.6 Payments
-No card data on VoltDrop systems (Stripe-hosted fields only). Customer funds move only through Stripe.
+No card data on VoltDrop systems (Stripe-hosted fields only). Customer funds move only through Stripe. With separate charges and transfers, VoltDrop is the merchant of record for card payments, and customer funds sit in its Stripe balance until the weekly transfer. Confirm the regulatory position (Payment Services Regulations 2017, including the commercial-agent exclusion), dispute liability and Stripe's funds-segregation option with a solicitor before M5.
 
 ### 11.7 Tips
 Default 100% to the courier. Any other share must be disclosed clearly before payment.
@@ -603,8 +622,8 @@ Default 100% to the courier. Any other share must be disclosed clearly before pa
 ### 11.8 Accessibility
 WCAG 2.2 AA across web and native: axe checks in Playwright and a manual screen-reader checklist for each release.
 
-### 11.9 Phase 2 reminder: couriers
-Since 1 October 2026, platforms engaging individual couriers must run right-to-work checks (Border Security, Asylum and Immigration Act 2025, s.48). When VoltDrop adds its own riders, onboarding must integrate a certified identity service provider before a rider can accept work.
+### 11.9 Couriers and right to work
+From 1 October 2026, platforms engaging individual couriers must run right-to-work checks (Border Security, Asylum and Immigration Act 2025, s.48). When VoltDrop adds its own riders (Phase 2), onboarding must integrate a certified identity service provider before a rider can accept work. For Phase 1, confirm with a solicitor whether the Act's extended liability for labour supply chains means the delivery provider contract needs right-to-work assurances.
 
 ---
 
@@ -735,8 +754,9 @@ Check every configuration format against the current Claude Code documentation (
 | `security-reviewer` | Read-only | Looks for authorisation gaps, injection, secrets, personal-data exposure and LLM prompt-injection paths |
 | `test-triager` | Can run tests | Runs suites, isolates failures, returns concise root-cause notes |
 
-### Hooks (`.claude/settings.json`)
-- Block edits to `.env*`, `*.pem`, `*.key` and Terraform state files.
+### Hooks and permissions (`.claude/settings.json`)
+- Block edits to `.env` and `.env.*` (except `.env.example`), `*.pem`, `*.key`, Terraform state files and the generated API client (`packages/api-client/src/generated/**`). Use a hook script: permission deny rules can't carry exceptions.
+- Deny reads of real env files (`.env`, `.env.local`) so secrets never enter Claude's context.
 - After edits to TypeScript files, run Prettier on the edited file.
 - Git-level checks (lint, typecheck) live in lefthook so they apply to every contributor.
 
@@ -864,7 +884,7 @@ Build:
   - carts with price locks;
   - routing engine;
   - reservations with TTL and an expiry job;
-  - pricing engine (VAT, delivery-fee rule, optional folded service fee, tips);
+  - pricing engine (VAT, policy delivery-fee rule locked with the cart, optional folded service fee, tips);
   - immutable quotes;
   - fraud rules and review queue.
 - Payments:
@@ -873,9 +893,9 @@ Build:
   - webhook ingestion with dedupe;
   - merchant onboarding via Stripe-hosted flow.
 - Order lifecycle:
-  - order creation on authorisation;
-  - accept, reject and timeout handling with re-routing;
-  - single partial capture; authorisation cancellation.
+  - order creation on authorisation, including late authorisations after reservations lapsed;
+  - accept, reject and timeout handling with re-routing and fulfilment plan revisions;
+  - single partial capture computed from the final plan; authorisation cancellation.
 - Ledger core: chart of accounts, journal and postings, with posting rules for capture, cancellation and refunds.
 
 Acceptance:
@@ -884,26 +904,12 @@ Acceptance:
 - Reservation expiry releases stock.
 - The price on the listing equals the price charged.
 
-### M6: Customer mobile app
-**Refs:** §9 (customer)
-
-Build an Expo app with Expo Router:
-- Address onboarding, search, product, cart.
-- Checkout with PaymentSheet (Apple Pay and Google Pay).
-- Live tracking (socket plus map), orders, receipts, account.
-- Notification permissions, deep links, accessibility.
-- EAS profiles (development, staging, production) and update channels.
-
-Acceptance:
-- A Maestro flow goes from order to delivered with the mock courier.
-- Every interactive element has a screen-reader label.
-- Works on small screens (iPhone SE, compact Android).
-
-### M7: Merchant app and store operations
+### M6: Merchant app and store operations
 **Refs:** §8.5, §8.11, §9 (merchant app)
 
 Build:
 - Expo merchant app with tablet and phone layouts; device pairing; staff PIN switching.
+- EAS profiles (development, staging, production) and update channels, shared by both Expo apps.
 - Orders board with ringing alerts (socket primary, push backup).
 - Escalation job: reminder → Twilio call → auto-reject → re-route.
 - Preparation: pick-and-scan confirmation; serial capture; label printing where supported, or an on-screen bag code; handover.
@@ -915,13 +921,28 @@ Acceptance:
 - Alert latency is under 5 s in an integration test.
 - The offline queue replays exactly once.
 
+### M7: Customer mobile app
+**Refs:** §9 (customer)
+
+Build an Expo app with Expo Router:
+- Address onboarding, search, product, cart.
+- Checkout with PaymentSheet (Apple Pay and Google Pay).
+- Live tracking (socket plus map), orders, receipts, account.
+- Notification permissions, deep links, accessibility.
+- Uses the EAS profiles and update channels set up in M6.
+
+Acceptance:
+- A Maestro flow goes from order to delivered with the mock courier.
+- Every interactive element has a screen-reader label.
+- Works on small screens (iPhone SE, compact Android).
+
 ### M8: Delivery provider integration and live tracking
 **Refs:** §8.5, §8.6, §10 (delivery)
 
 Build:
 - The final `DeliveryProvider` interface.
 - Uber Direct adapter covering quotes, create, cancel, webhooks, proof of delivery, return to pickup, and tip pass-through if supported. Contract tests use recorded fixtures.
-- Booking strategy; delivery-fee rule using quotes.
+- Booking strategy; provider cost and margin monitoring against the policy delivery fee.
 - Courier position ingestion pushed to customer sockets.
 - Failed-delivery flow; reverse delivery jobs; zone pause on provider outage.
 
@@ -1088,7 +1109,7 @@ DATABASE_READONLY_URL=
 REDIS_URL=redis://localhost:6379
 TYPESENSE_URL=http://localhost:8108
 TYPESENSE_API_KEY=
-S3_ENDPOINT=http://localhost:9000
+S3_ENDPOINT=http://localhost:9000  # SeaweedFS S3 API locally
 S3_REGION=eu-west-2
 S3_BUCKET_PUBLIC=voltdrop-public
 S3_BUCKET_PRIVATE=voltdrop-private
@@ -1244,7 +1265,7 @@ Status: docs/PROGRESS.md. Plans: docs/plans/. Decisions: docs/adr/. Open questio
 - No personal data in logs, search, analytics, LLM prompts or Sentry.
 - Price shown = price charged. No fee appears for the first time at checkout.
 - Never report stubs as done. Never weaken tests to make them pass.
-- Never edit .env files or generated clients by hand.
+- Never edit .env files (except .env.example) or generated clients by hand.
 
 ## External services
 All sit behind interfaces with mock adapters (spec §10). Read the provider's current docs before

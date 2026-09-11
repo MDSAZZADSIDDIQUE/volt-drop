@@ -1,0 +1,58 @@
+# Open questions
+
+The live list of questions the spec can't answer by itself. Each entry says who needs to answer, what it blocks, and where it came from. When a question is answered, record the answer (or the ADR that captures it), and move the entry to "Answered" at the bottom.
+
+Last updated: 2026-09-11 (kickoff).
+
+## For the solicitor
+
+| # | Question | Blocks | Source |
+|---|---|---|---|
+| L1 | With Stripe Connect separate charges and transfers, VoltDrop is the merchant of record and holds customer funds until the weekly transfer. What is our position under the Payment Services Regulations 2017, including the commercial-agent exclusion? Should we use Stripe's funds-segregation option? | M5 | ADR-0008, spec §11.6 |
+| L2 | How should dispute and refund liability be allocated between VoltDrop and merchants in the merchant terms? | M5, M9 | ADR-0008 |
+| L3 | When a consumer cancels part of an order, must the outbound delivery fee be refunded in proportion? | M10 | spec §8.7 |
+| L4 | What evidence and limits apply to diminished-value deductions on change-of-mind returns? | M10 | spec §8.7, §11.2 |
+| L5 | Confirm the delivery-fee display approach: a policy fee shown when the address is known, with the free-delivery threshold and small-basket surcharge alongside it. | M5 | ADR-0002, spec §11.1 |
+| L6 | Does the Border Security, Asylum and Immigration Act 2025's extended labour-supply-chain liability mean the Uber Direct contract needs right-to-work assurances in Phase 1? | Launch | ADR-0007, spec §11.9 |
+| L7 | Data (Use and Access) Act 2025: who owns the data-protection complaints process, and what wording do we use for the automated-decision safeguards (fraud blocks, store auto-rejects, auto-pausing)? | M2, launch | ADR-0007, spec §11.3 |
+| L8 | How do we classify buyers who could be consumers or businesses (for example a sole trader buying on a business account for mixed use)? | M10, M11 | spec §3, §11.2 |
+| L9 | Product Regulation and Metrology Act 2025: which online-marketplace duties apply to VoltDrop once regulations are made? (watch item) | Launch | ADR-0007, spec §11.4 |
+| L10 | Terms and notices: how is VoltDrop identified as the marketplace operator, and what's in the merchant terms and the customer terms? | Launch | spec §11.2 |
+
+## For the accountant
+
+| # | Question | Blocks | Source |
+|---|---|---|---|
+| A1 | Is the delivery fee a separate supply by VoltDrop (standard-rated), or part of the merchant's supply of goods? This decides the §7 capture posting. | M5 | spec §7 |
+| A2 | Is VAT on commission and the platform fee correct as proposed: 15% of item gross, with VAT added on top? What does this mean for merchants who aren't VAT-registered? Can the settlement statement serve as the VAT invoice? | M9 | ADR-0005 |
+| A3 | Under the online-marketplace VAT rules, how should we treat sellers who aren't UK-established? Should they be blocked? | M5 | ADR-0008, spec §11.5 |
+| A4 | What is the VAT and income-tax treatment of tips passed through to couriers? | M5, M8 | spec §3, §11.7 |
+| A5 | HMRC digital platform reporting: which thresholds apply, and what export format and deadlines? | M9 | spec §11.5 |
+| A6 | Confirm the chart of accounts and posting rules in spec §7. | M5, M9 | spec §7 |
+
+## Product and operations (founder)
+
+| # | Question | Blocks | Source |
+|---|---|---|---|
+| P1 | Where is the real launch zone? (Seed data uses a Manchester city-centre demo polygon.) | Launch | spec §3 |
+| P2 | Uber Direct: does it cover the launch zone? In the UK, does it support PIN verification, tip pass-through, return-to-pickup and collections from customers for returns? When do we get sandbox access? | M8 | kickoff risk 5 |
+| P3 | Delivery-fee policy values: base fee, distance bands, minimum and maximum, free-delivery threshold, small-basket surcharge and margin alert threshold. | M5 | ADR-0002 |
+| P4 | Typesense Cloud region, data-processing terms and budget (reconfirm before M14). | M14 | ADR-0010 |
+| P5 | Which domain name will we use for the email sender and web apps? (Error `type` codes use a URN, so they don't depend on it.) | M11 | M0 plan |
+| P6 | Is the GitHub repository private? This affects CodeQL availability and Actions minutes. | M0 CI, M14 | M0 plan |
+| P7 | Do you want Dependabot or Renovate for dependency update pull requests? | M0 | M0 plan |
+
+## Engineering decisions made under the §0 decision rule
+
+Details that don't affect architecture, money, compliance, security or retention are decided by Claude Code, recorded in an ADR, and listed here so the founder can review them.
+
+| Decision | ADR | Milestone |
+|---|---|---|
+| (none yet) | | |
+
+## Answered
+
+| # | Answer | Date |
+|---|---|---|
+| Kickoff (c)1 to (c)11 | Adopted in spec v1.1, see ADR-0002 to ADR-0011 | 2026-09-11 |
+| M0 decisions D1 to D10 | Approved as recommended in `docs/plans/M0-plan.md` | 2026-09-11 |

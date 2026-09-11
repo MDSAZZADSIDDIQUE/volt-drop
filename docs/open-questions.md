@@ -50,7 +50,7 @@ Details that don't affect architecture, money, compliance, security or retention
 | Decision | ADR | Milestone |
 |---|---|---|
 | Local pgvector is 0.8.6 (prebuilt, pinned) rather than RDS's 0.8.1, and local PostGIS is 3.6.4 against 3.6.3 on RDS. Both are patch-level differences. | ADR-0001 (to come) | M0 |
-| Only install npm package versions at least a day old (pnpm 11's minimum release age), so vite is pinned to 8.2.2 | ADR-0001 (to come) | M0 |
+| Only install npm package versions at least a day old (pnpm 11's minimum release age). Where the newest release is younger, the one before it is pinned and listed in `docs/PROGRESS.md` until it can be bumped; vite was held at 8.2.2 this way until 8.3.0 qualified | ADR-0001 (to come) | M0 |
 | S3 clients send checksums only when an operation requires them, because the AWS SDK default breaks presigned uploads to S3-compatible stores | ADR-0010 (implementation notes) | M0, M4 |
 | Added `API_PORT` and `LOG_LEVEL` to the environment variables | ADR-0001 (to come) | M0 |
 | Idempotency fingerprints use the request path (with its query), not the route template, and a lock token stops a request that lost its lease from committing | ADR-0014 | M0 |

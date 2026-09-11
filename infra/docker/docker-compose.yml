@@ -1,0 +1,112 @@
+# Local development services (spec §4). Start with `pnpm infra:up`, stop with `pnpm infra:down`.
+# Every image is pinned by tag and digest. Credentials here are local-only placeholders, not secrets.
+name: voltdrop
+
+services:
+  postgres:
+    build:
+      context: ./postgres
+    image: voltdrop-local/postgres:18-postgis-3.6-pgvector-0.8.6
+    environment:
+      POSTGRES_USER: voltdrop
+      POSTGRES_PASSWORD: voltdrop
+      POSTGRES_DB: voltdrop
+    ports:
+      - '5432:5432'
+    volumes:
+      # PostgreSQL 18 images keep their data under /var/lib/postgresql/18/docker.
+      - postgres-data:/var/lib/postgresql
+    healthcheck:
+      # Check over TCP: during first-time setup the entrypoint runs a temporary server that only
+      # listens on the Unix socket, then restarts it, so a socket check reports healthy too early.
+      test: ['CMD-SHELL', 'pg_isready -h 127.0.0.1 -U voltdrop -d voltdrop']
+      interval: 5s
+      timeout: 5s
+      retries: 30
+
+  valkey:
+    image: valkey/valkey:9.1@sha256:c123e3715db63d06d4ad6964884037aa0d5d4d703939b9929954112889708e1d
+    # Valkey is never the source of truth (spec §4), so it keeps nothing on disk.
+    command: ['valkey-server', '--save', '', '--appendonly', 'no']
+    ports:
+      - '6379:6379'
+    healthcheck:
+      test: ['CMD', 'valkey-cli', 'ping']
+      interval: 5s
+      timeout: 3s
+      retries: 30
+
+  typesense:
+    image: typesense/typesense:30.2@sha256:610f2d34b1f93d00762869da2c67736775e5798d19a2c8b91b014b8a0cc1e110
+    command: ['--data-dir=/data', '--api-key=local-dev-typesense-key', '--enable-cors']
+    ports:
+      - '8108:8108'
+    volumes:
+      - typesense-data:/data
+    healthcheck:
+      test:
+        [
+          'CMD-SHELL',
+          'bash -c "exec 3<>/dev/tcp/127.0.0.1/8108 && printf \"GET /health HTTP/1.0\r\n\r\n\" >&3 && grep -q \"ok\" <&3"',
+        ]
+      interval: 5s
+      timeout: 5s
+      retries: 30
+
+  # S3-compatible storage (ADR-0010). The S3 API is published on host port 9000 so S3_ENDPOINT
+  # stays http://localhost:9000.
+  s3:
+    image: chrislusf/seaweedfs:4.46@sha256:08d516132314207d10c8e37cbffc1f32b147d870169688734cc61c6231625b62
+    command:
+      - server
+      - -dir=/data
+      - -master.volumeSizeLimitMB=256
+      - -s3
+      - -s3.port=8333
+      - -s3.config=/etc/seaweedfs/s3.json
+    ports:
+      - '9000:8333'
+    volumes:
+      - s3-data:/data
+      - ./seaweedfs/s3.json:/etc/seaweedfs/s3.json:ro
+    healthcheck:
+      test: ['CMD-SHELL', 'wget -q -O /dev/null http://127.0.0.1:9333/cluster/healthz || exit 1']
+      interval: 5s
+      timeout: 5s
+      retries: 30
+
+  mailpit:
+    image: axllent/mailpit:v1.31.1@sha256:98b916bd3c8d61f7633a52d3ea2f58d00620cb01ca57ab59edde68c347a95365
+    environment:
+      MP_SMTP_AUTH_ACCEPT_ANY: '1'
+      MP_SMTP_AUTH_ALLOW_INSECURE: '1'
+    ports:
+      - '1025:1025'
+      - '8025:8025'
+    healthcheck:
+      test: ['CMD', '/mailpit', 'readyz']
+      interval: 5s
+      timeout: 3s
+      retries: 30
+
+  # Optional: `docker compose --profile reporting up` (spec §4). Port 3001, because 3000 is customer-web.
+  metabase:
+    profiles: ['reporting']
+    image: metabase/metabase:v0.63.17@sha256:918187453bd5d70849d14bb6af0bb482a617dc849f251502679a8e626d98f4ee
+    environment:
+      MB_DB_TYPE: postgres
+      MB_DB_HOST: postgres
+      MB_DB_PORT: '5432'
+      MB_DB_DBNAME: metabase
+      MB_DB_USER: voltdrop
+      MB_DB_PASS: voltdrop
+    ports:
+      - '3001:3000'
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+volumes:
+  postgres-data:
+  typesense-data:
+  s3-data:

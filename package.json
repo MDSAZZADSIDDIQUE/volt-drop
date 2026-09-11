@@ -17,9 +17,17 @@
     "test:int": "turbo run test:int",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
+    "infra:up": "docker compose -f infra/docker/docker-compose.yml up --detach --wait && node scripts/infra-init.mjs",
+    "infra:down": "docker compose -f infra/docker/docker-compose.yml down",
+    "infra:reset": "docker compose -f infra/docker/docker-compose.yml down --volumes",
+    "infra:logs": "docker compose -f infra/docker/docker-compose.yml logs --follow",
+    "infra:smoke": "node scripts/s3-smoke.mjs",
     "prepare": "lefthook install"
   },
   "devDependencies": {
+    "@aws-sdk/client-s3": "3.1129.0",
+    "@aws-sdk/s3-presigned-post": "3.1129.0",
+    "@aws-sdk/s3-request-presigner": "3.1129.0",
     "@voltdrop/config": "workspace:*",
     "dependency-cruiser": "18.2.0",
     "lefthook": "2.1.12",

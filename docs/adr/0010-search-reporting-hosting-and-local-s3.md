@@ -31,6 +31,17 @@
 - `TODO(M0)`: SeaweedFS in compose, plus the smoke test (M0 plan, step 3).
 - `TODO(M14)`: confirm the Typesense Cloud region and data-processing terms; add Typesense and Metabase to Terraform and the sub-processor list.
 
+## Implementation notes
+
+- **2026-09-11 (M0 step 3):** the SeaweedFS 4.46 smoke test (`pnpm infra:smoke`) passed:
+  - presigned PUT;
+  - presigned POST within a content-length-range policy;
+  - rejection of an oversized POST with `EntityTooLarge`;
+  - CORS preflight for the local app origins.
+
+  The RustFS fallback isn't needed.
+- The AWS SDK's default request checksums (added in 2025) break presigned uploads to S3-compatible stores. S3 clients set `requestChecksumCalculation` and `responseChecksumValidation` to `WHEN_REQUIRED`. `TODO(M4)`: the ObjectStore adapter must do the same.
+
 ## Alternatives considered
 
 - **Self-host Typesense on ECS Fargate.** Raft clustering needs stable peers and persistent disks, which fits Fargate poorly. More operations work for a small team.

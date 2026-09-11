@@ -48,7 +48,10 @@ Details that don't affect architecture, money, compliance, security or retention
 
 | Decision | ADR | Milestone |
 |---|---|---|
-| (none yet) | | |
+| Local pgvector is 0.8.6 (prebuilt, pinned) rather than RDS's 0.8.1, and local PostGIS is 3.6.4 against 3.6.3 on RDS. Both are patch-level differences. | ADR-0001 (to come) | M0 |
+| Only install npm package versions at least a day old (pnpm 11's minimum release age), so vite is pinned to 8.2.2 | ADR-0001 (to come) | M0 |
+| S3 clients send checksums only when an operation requires them, because the AWS SDK default breaks presigned uploads to S3-compatible stores | ADR-0010 (implementation notes) | M0, M4 |
+| Added `API_PORT` and `LOG_LEVEL` to the environment variables | ADR-0001 (to come) | M0 |
 
 ## Answered
 

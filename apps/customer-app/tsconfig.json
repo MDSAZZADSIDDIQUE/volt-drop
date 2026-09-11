@@ -1,0 +1,12 @@
+{
+  "extends": ["expo/tsconfig.base", "@voltdrop/config/tsconfig/base.json"],
+  "compilerOptions": {
+    "lib": ["ES2024", "DOM"],
+    "noEmit": true,
+    "declaration": false,
+    "declarationMap": false,
+    "sourceMap": false
+  },
+  "include": ["**/*.ts", "**/*.tsx", "nativewind-env.d.ts"],
+  "exclude": ["node_modules", "dist", ".expo"]
+}

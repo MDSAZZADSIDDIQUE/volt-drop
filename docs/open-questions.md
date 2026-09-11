@@ -41,6 +41,7 @@ Last updated: 2026-09-11 (kickoff).
 | P5 | Which domain name will we use for the email sender and web apps? (Error `type` codes use a URN, so they don't depend on it.) | M11 | M0 plan |
 | P6 | Is the GitHub repository private? This affects CodeQL availability and Actions minutes. | M0 CI, M14 | M0 plan |
 | P7 | Do you want Dependabot or Renovate for dependency update pull requests? | M0 | M0 plan |
+| P8 | How long should dispatched outbox events be kept? They hold identifiers, not personal data, and help when investigating incidents. Until you decide, nothing is deleted. A suggested default is 30 days after dispatch. | M13 | ADR-0015 |
 
 ## Engineering decisions made under the §0 decision rule
 
@@ -52,6 +53,10 @@ Details that don't affect architecture, money, compliance, security or retention
 | Only install npm package versions at least a day old (pnpm 11's minimum release age), so vite is pinned to 8.2.2 | ADR-0001 (to come) | M0 |
 | S3 clients send checksums only when an operation requires them, because the AWS SDK default breaks presigned uploads to S3-compatible stores | ADR-0010 (implementation notes) | M0, M4 |
 | Added `API_PORT` and `LOG_LEVEL` to the environment variables | ADR-0001 (to come) | M0 |
+| Idempotency fingerprints use the request path (with its query), not the route template, and a lock token stops a request that lost its lease from committing | ADR-0014 | M0 |
+| Feature flags: when a caller's user segments disagree, disabled wins | ADR-0016 | M0 |
+| Readiness needs PostgreSQL (fully migrated) and Valkey; without Typesense the API reports itself `degraded` but keeps taking traffic | M0 plan §6 | M0 |
+| Policy keys follow ADR-0004's naming (`area.snake_case_name`); version 1 of five M0 policies is seeded by migration with the spec v1.1 §3 defaults | M0 plan step 6 | M0 |
 
 ## Answered
 

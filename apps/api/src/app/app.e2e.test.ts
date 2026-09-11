@@ -128,12 +128,17 @@ describe('API skeleton', () => {
   });
 
   it('rejects bodies over 1 MB with a payload-too-large problem', async () => {
-    const response = await request(app.getHttpServer())
-      .post('/v1/test/items')
-      .set('content-type', 'application/json')
-      .send(JSON.stringify({ name: 'x'.repeat(1_100_000), quantity: 1 }))
-      .expect(413);
-    expect(response.body).toMatchObject({ type: 'urn:voltdrop:problem:payload-too-large' });
+    // Sent in memory rather than over a socket: over a real connection the server replies 413 and
+    // closes it mid-upload, and the client can hit ECONNRESET before it reads that reply.
+    const response = await app.inject({
+      method: 'POST',
+      url: '/v1/test/items',
+      headers: { 'content-type': 'application/json' },
+      payload: JSON.stringify({ name: 'x'.repeat(1_100_000), quantity: 1 }),
+    });
+    expect(response.statusCode).toBe(413);
+    const body: unknown = response.json();
+    expect(body).toMatchObject({ type: 'urn:voltdrop:problem:payload-too-large' });
   });
 
   it('hides internal details of unexpected errors', async () => {
@@ -156,7 +161,9 @@ describe('API skeleton', () => {
     };
     expect(document.openapi).toBe('3.1.0');
     expect(Object.keys(document.paths)).toContain('/v1/health');
+    expect(Object.keys(document.paths)).toContain('/v1/ready');
     expect(document.components?.schemas).toHaveProperty('Health');
+    expect(document.components?.schemas).toHaveProperty('Readiness');
 
     // The validator dereferences in place, so give it a copy.
     const result = await validate(
@@ -174,6 +181,28 @@ describe('start-up checks and production', () => {
       /UndeclaredController\.forgotten/,
     );
   });
+
+  it('reports not ready, listing every check, when its dependencies are unreachable', async () => {
+    const app = await start(
+      loadEnv({
+        LOG_LEVEL: 'silent',
+        DATABASE_URL: 'postgres://voltdrop:voltdrop@127.0.0.1:1/voltdrop',
+        REDIS_URL: 'redis://127.0.0.1:1',
+        TYPESENSE_URL: 'http://127.0.0.1:1',
+      }),
+    );
+    try {
+      const response = await request(app.getHttpServer()).get('/v1/ready').expect(503);
+      expect(response.headers['content-type']).toContain('application/problem+json');
+      expect(response.body).toMatchObject({
+        type: 'urn:voltdrop:problem:service-unavailable',
+        status: 503,
+        checks: { postgres: 'down', migrations: 'down', valkey: 'down', typesense: 'down' },
+      });
+    } finally {
+      await app.close();
+    }
+  }, 15_000);
 
   it('does not serve the API reference in production', async () => {
     const app = await start({ ...localEnv(), APP_ENV: 'production' });

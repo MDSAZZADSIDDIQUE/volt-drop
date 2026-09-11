@@ -11,12 +11,11 @@ Where the VoltDrop build stands. Updated after every step, so a fresh session ca
 | Step | Status | Notes |
 |---|---|---|
 | 1. Repository and toolchain | Done | pnpm 11.26.0 workspace, Turborepo, shared TS/ESLint/Prettier config, lefthook (format, affected typecheck, Conventional Commits), dependency-cruiser rules |
-| 2. `packages/domain` | Done | Money, VAT, allocation, formatting, UUIDv7 ids, human references, state machines, shared schemas. 84 tests including an exhaustive VAT check over 3 million amounts; 100% statement, branch, function and line coverage (ADR-0012) |
+| 2. `packages/domain` | Done | Money, VAT, allocation, formatting, UUIDv7 ids, human references, state machines, shared schemas. 84 tests including an exhaustive VAT check over 3 million amounts; 100% statement, branch, function and line coverage (ADR-0012). Policy definitions added in step 6 |
 | 3. Local infrastructure | Done | Docker Compose: PostgreSQL 18 with PostGIS 3.6.4 and pgvector 0.8.6, Valkey 9.1, Typesense 30.2, SeaweedFS 4.46 (S3), Mailpit, optional Metabase. Bucket and CORS setup. The S3 smoke test (presigned PUT, size-limited presigned POST, CORS) passes |
 | 4. Configuration | Done | zod schema for every spec §18 variable plus `API_PORT` and `LOG_LEVEL`, with conditional provider rules and production guards. Local defaults mean a fresh clone needs no `.env`. Errors list keys, never values. `.env.example` documents everything |
-| 5. API skeleton (5a spike first) | Done | NestJS 12 on Fastify (ESM). Zod validation through Standard Schema, and OpenAPI 3.1 from the same schemas (ADR-0013). RFC 9457 problem details. pino with redaction and correlation ids. OpenTelemetry preload. Swagger UI at `/docs` outside production. Deny-by-default route declarations. `/v1/health`. `/v1/ready` moves to step 6, where its database and Valkey checks live |
-| 6. Database, jobs and platform tables | In progress | |
-| 6. Database, jobs and platform tables | Not started | |
+| 5. API skeleton (5a spike first) | Done | NestJS 12 on Fastify (ESM). Zod validation through Standard Schema, and OpenAPI 3.1 from the same schemas (ADR-0013). RFC 9457 problem details. pino with redaction and correlation ids. OpenTelemetry preload. Swagger UI at `/docs` outside production. Deny-by-default route declarations. `/v1/health` |
+| 6. Database, jobs and platform tables | Done | Migrations 0000–0002 (PostGIS and pgvector; the platform tables; the append-only trigger on `policy_versions` and the version 1 policy seeds); `pnpm db:migrate`; transactions that join an open one; `PolicyService`; `FeatureFlagService` (ADR-0016); `JobQueue` and the worker process on Graphile Worker; the transactional outbox with exactly-once handler deliveries (ADR-0015); `@Idempotent()` (ADR-0014); `GET /v1/ready`. 75 unit and end-to-end tests and 37 integration tests (Testcontainers) pass. Two intermittent test failures were traced to races in the tests, not the product, and fixed: the outbox retry test read a job before Graphile Worker (which records failures without awaiting them) had written its error; and the step 5 body-limit test could hit ECONNRESET before reading the 413, so that request is now sent in memory |
 | 7. OpenAPI and the generated client | Not started | |
 | 8. App and UI package scaffolds | Not started | |
 | 9. CI | Not started | |
@@ -26,23 +25,33 @@ Where the VoltDrop build stands. Updated after every step, so a fresh session ca
 
 ## Known gaps
 
-Recorded as `TODO(M<n>)` in the code, and listed here.
+Recorded as `TODO(M<n>)` in the code or the ADRs, and listed here.
 
-- None yet.
+- `TODO(M2)`: sign-in and permission checks; every permissioned route answers 401 until then (`access.guard.ts`).
+- `TODO(M2)`: audit entries for policy and flag changes (invariant 8).
+- `TODO(M2)`: idempotency keys scoped to the signed-in caller; until then all callers share one scope.
+- `TODO(M4)`: the ObjectStore adapter must send S3 checksums only when required (ADR-0010).
+- `TODO(M5)`: late authorisation, the tip split and delivery-fee handling on partial fulfilment (ADR-0004).
+- `TODO(M8)`: pass each trip's tip share to the delivery provider (ADR-0004).
+- `TODO(M9)`: Europe/London schedules on Graphile Worker's UTC-only cron, tested at both clock changes (ADR-0015).
+- `TODO(M13)`: admin screens for policies, flags, the outbox backlog and failed jobs; outbox retention once open question P8 is answered.
 
 ## Deviations from the approved plan
 
 - **pgvector locally is 0.8.6, not 0.8.1.** PostgreSQL's apt repository publishes no 0.8.1 package for PostgreSQL 18, and compiling it pulls in LLVM, which would add minutes to every CI run. PostGIS is 3.6.4 locally against 3.6.3 on RDS. Both are patch-level differences; re-check before vector features ship.
 - **vite is pinned to 8.2.2, not 8.3.0.** 8.3.0 was under a day old, and pnpm 11 won't install packages younger than a day (its minimum release age).
+- **Three migrations instead of two.** Generated SQL (0001, the tables) is kept apart from hand-written SQL (0002, the append-only trigger and the policy seeds), so a regenerated migration never mixes with custom code.
+- **No `attempts` or `last_error` columns on `outbox`.** Each handler runs as its own Graphile Worker job, which already records its attempts and last error (ADR-0015).
 
 ## Environment notes
 
 - The development machine runs Windows 11, with PowerShell and Git Bash. Git has `core.autocrlf=true`, so `.gitattributes` enforces LF line endings.
 - pnpm 11.26.0 is installed for the user. Node is 24.20.0.
-- Docker Desktop must be running for `pnpm infra:up` and the integration tests.
+- Docker Desktop must be running for `pnpm infra:up` and the integration tests. The first integration run builds the Postgres image (a minute or two); later runs take about 45 seconds.
+- The local Docker Compose stack was stopped from outside this session at 13:02 UTC on 2026-09-11 (a clean stop, not a crash). Integration tests don't need it; run `pnpm infra:up` before using the API locally.
 - `docs/Short - UK Technology Quick-Commerce Marketplace Requirements.pdf` is untracked. It isn't committed until the founder decides what to do with it.
 
 ## Next steps
 
-1. Finish step 1: run `pnpm install`, `pnpm lint` and `pnpm typecheck` on the empty workspace, then commit.
-2. Step 2: `packages/domain`, test-first.
+1. Step 7: generate the OpenAPI document and the typed client (orval), with a drift check.
+2. Step 8: the app and UI package scaffolds.

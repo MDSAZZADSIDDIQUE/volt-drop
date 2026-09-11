@@ -15,3 +15,8 @@ allowBuilds:
   '@scarf/scarf': false
   # Denied: not needed at runtime by the OpenTelemetry exporters that pull it in.
   protobufjs: false
+  # Only verifies and links its platform binary (node install.js); needed by vite and drizzle-kit.
+  esbuild: true
+  # Denied: optional native speed-ups for SSH Docker hosts, pulled in by testcontainers; not needed.
+  cpu-features: false
+  ssh2: false

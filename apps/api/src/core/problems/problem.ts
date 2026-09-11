@@ -15,6 +15,8 @@ export interface ProblemInit {
   /** What happened and how to fix it. Never internal details. */
   readonly detail?: string;
   readonly errors?: readonly FieldProblem[];
+  /** Extra members (RFC 9457 §3.2), such as readiness checks. They never override standard members. */
+  readonly extensions?: Readonly<Record<string, unknown>>;
 }
 
 /** An error that becomes an RFC 9457 problem response (spec §6). Throw it from anywhere in a request. */
@@ -59,6 +61,25 @@ export const PROBLEMS = {
     status: 503,
     title: 'The service is temporarily unavailable. Try again shortly',
   },
+  // Idempotency (ADR-0014). Listed after the generic entry for each status.
+  idempotencyKeyRequired: {
+    code: 'idempotency-key-required',
+    status: 400,
+    title: 'Add an Idempotency-Key header to this request',
+    detail: 'Send a unique key (for example a UUID) of 1 to 255 visible ASCII characters.',
+  },
+  idempotencyKeyInProgress: {
+    code: 'idempotency-key-in-progress',
+    status: 409,
+    title: 'A request with this Idempotency-Key is still being processed',
+    detail: 'Wait a moment, then retry with the same key to get its result.',
+  },
+  idempotencyKeyReused: {
+    code: 'idempotency-key-reused',
+    status: 422,
+    title: 'This Idempotency-Key was already used for a different request',
+    detail: 'Use a new key for a new request.',
+  },
 } as const satisfies Record<string, ProblemInit>;
 
 const CATALOGUE: readonly ProblemInit[] = Object.values(PROBLEMS);
@@ -79,9 +100,12 @@ export function validationProblem(errors: readonly FieldProblem[]): ProblemExcep
   return new ProblemException({ ...PROBLEMS.validationFailed, errors });
 }
 
+export type ProblemBody = ProblemDetails & Record<string, unknown>;
+
 /** The response body. `instance` is the request's correlation id, which support can search for. */
-export function toProblemBody(problem: ProblemInit, instance: string | undefined): ProblemDetails {
-  const body: ProblemDetails = {
+export function toProblemBody(problem: ProblemInit, instance: string | undefined): ProblemBody {
+  const body: ProblemBody = {
+    ...problem.extensions,
     type: problemType(problem.code),
     title: problem.title,
     status: problem.status,

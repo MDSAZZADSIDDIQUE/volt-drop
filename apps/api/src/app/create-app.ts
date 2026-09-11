@@ -41,7 +41,7 @@ export async function createApp(
   });
 
   const app = await NestFactory.create<NestFastifyApplication>(
-    ApiModule.forRoot(env, extraModules),
+    ApiModule.forRoot(env, { logger, extraModules }),
     adapter,
     { logger: new PinoNestLogger(logger), abortOnError: false },
   );

@@ -11,6 +11,9 @@ import type { Env } from '../../config/env.js';
 import { currentCorrelationId } from '../context/request-context.js';
 import { redact, redactString } from './redact.js';
 
+/** Injection token for the process's pino logger. Inject with `@Inject(LOGGER)`. */
+export const LOGGER = Symbol('LOGGER');
+
 interface RequestLike {
   readonly id?: unknown;
   readonly method?: unknown;

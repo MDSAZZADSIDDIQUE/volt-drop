@@ -45,7 +45,12 @@ export class ProblemDetailsFilter implements ExceptionFilter {
     const reply = http.getResponse<FastifyReply>();
     const problem = toProblem(exception);
     if (problem.status >= 500) {
-      this.logger.error({ err: exception, req: request }, 'Request failed');
+      if (exception instanceof ProblemException) {
+        // A deliberate 5xx, such as readiness while a dependency is down: expected, so no stack.
+        this.logger.warn({ problem: problem.code, req: request }, 'Request failed');
+      } else {
+        this.logger.error({ err: exception, req: request }, 'Request failed');
+      }
     }
     void reply
       .status(problem.status)

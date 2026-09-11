@@ -61,6 +61,8 @@ Details that don't affect architecture, money, compliance, security or retention
 | Client apps read the API address from `EXPO_PUBLIC_API_BASE_URL`, `NEXT_PUBLIC_API_BASE_URL` or `VITE_API_BASE_URL`, because each bundler only exposes its own prefix; documented in `.env.example` | M0 plan step 8 | M0 |
 | No `eslint-plugin-jsx-a11y` yet: its newest release (6.10.2) doesn't support ESLint 10. Components are tested for roles, names, keyboard use and focus instead, and the plugin is re-checked before M1 | M0 plan step 8 | M0 |
 | The spec's CORS allowlist (§12) is exactly the three web apps' origins from the environment (`CUSTOMER_WEB_URL`, `ADMIN_URL`, `MERCHANT_PORTAL_URL`), with no credentials until sign-in (M2). `AUTH_TRUSTED_ORIGINS` stays for the auth library | M0 plan step 8 | M0 |
+| Turbo runs cached tasks in strict environment mode. The apps' public variables (`NEXT_PUBLIC_*`, `VITE_*`, `EXPO_PUBLIC_*`) need no declaration: Turbo's framework inference hashes and passes them (checked with a dry run). The telemetry opt-outs and `CI` pass through without affecting cache keys. `dev` and `test:int` are never cached, so they run in loose mode and see the whole shell environment | M0 plan step 9 | M0 |
+| CI runs on `ubuntu-latest` only, with actions pinned to commit SHAs, `permissions: contents: read`, and superseded runs cancelled, because the private repository's Actions minutes are metered | M0 plan step 9 | M0 |
 
 ## Answered
 

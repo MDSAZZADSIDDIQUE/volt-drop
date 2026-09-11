@@ -46,6 +46,18 @@ export async function createApp(
     { logger: new PinoNestLogger(logger), abortOnError: false },
   );
   app.enableVersioning({ type: VersioningType.URI });
+  // Spec §12: a CORS allowlist. Only the three web apps may read API responses in a browser (the
+  // Expo apps aren't browsers). No credentials until sign-in arrives (M2).
+  app.enableCors({
+    origin: [env.CUSTOMER_WEB_URL, env.ADMIN_URL, env.MERCHANT_PORTAL_URL].map(
+      (url) => new URL(url).origin,
+    ),
+    methods: ['GET', 'HEAD', 'POST', 'PUT', 'PATCH', 'DELETE'],
+    allowedHeaders: ['content-type', 'idempotency-key', 'x-request-id'],
+    exposedHeaders: ['x-request-id', 'idempotent-replayed'],
+    credentials: false,
+    maxAge: 600,
+  });
   app.useGlobalPipes(createValidationPipe());
   app.useGlobalFilters(new ProblemDetailsFilter(logger));
   app.enableShutdownHooks();

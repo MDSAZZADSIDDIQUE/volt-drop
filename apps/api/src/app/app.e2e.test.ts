@@ -152,6 +152,46 @@ describe('API skeleton', () => {
     expect(response.body).toMatchObject({ type: 'urn:voltdrop:problem:unauthenticated' });
   });
 
+  it('lets the web apps read responses, and exposes the correlation and replay headers', async () => {
+    const response = await request(app.getHttpServer())
+      .get('/v1/health')
+      .set('origin', 'http://localhost:5174')
+      .expect(200);
+    expect(response.headers['access-control-allow-origin']).toBe('http://localhost:5174');
+    const exposed = String(response.headers['access-control-expose-headers']).toLowerCase();
+    expect(exposed).toContain('x-request-id');
+    expect(exposed).toContain('idempotent-replayed');
+    expect(response.headers['access-control-allow-credentials']).toBeUndefined();
+  });
+
+  it('answers a preflight for an idempotent POST from a web app', async () => {
+    const response = await request(app.getHttpServer())
+      .options('/v1/test/items')
+      .set('origin', 'http://localhost:3000')
+      .set('access-control-request-method', 'POST')
+      .set('access-control-request-headers', 'content-type,idempotency-key');
+    expect(response.status).toBe(204);
+    expect(response.headers['access-control-allow-origin']).toBe('http://localhost:3000');
+    expect(String(response.headers['access-control-allow-methods'])).toContain('POST');
+    expect(String(response.headers['access-control-allow-headers']).toLowerCase()).toContain(
+      'idempotency-key',
+    );
+    expect(response.headers['access-control-max-age']).toBe('600');
+  });
+
+  it('gives any other origin no permission to read responses', async () => {
+    const response = await request(app.getHttpServer())
+      .get('/v1/health')
+      .set('origin', 'https://evil.example');
+    expect(response.headers['access-control-allow-origin']).toBeUndefined();
+
+    const preflight = await request(app.getHttpServer())
+      .options('/v1/test/items')
+      .set('origin', 'https://evil.example')
+      .set('access-control-request-method', 'POST');
+    expect(preflight.headers['access-control-allow-origin']).toBeUndefined();
+  });
+
   it('serves a valid OpenAPI 3.1 document outside production', async () => {
     const response = await request(app.getHttpServer()).get('/docs/openapi.json').expect(200);
     const document = response.body as {

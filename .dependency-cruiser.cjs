@@ -40,6 +40,15 @@ module.exports = {
       },
     },
     {
+      name: 'core-never-imports-modules',
+      comment:
+        'apps/api/src/core is framework plumbing shared by every module (logging, errors, ' +
+        'validation, OpenAPI). It must not depend on any business module.',
+      severity: 'error',
+      from: { path: '^apps/api/src/core/' },
+      to: { path: '^apps/api/src/modules/' },
+    },
+    {
       name: 'api-module-boundaries',
       comment:
         "A module may use another module only through that module's public index.ts " +

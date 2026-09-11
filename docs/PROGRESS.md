@@ -14,7 +14,8 @@ Where the VoltDrop build stands. Updated after every step, so a fresh session ca
 | 2. `packages/domain` | Done | Money, VAT, allocation, formatting, UUIDv7 ids, human references, state machines, shared schemas. 84 tests including an exhaustive VAT check over 3 million amounts; 100% statement, branch, function and line coverage (ADR-0012) |
 | 3. Local infrastructure | Done | Docker Compose: PostgreSQL 18 with PostGIS 3.6.4 and pgvector 0.8.6, Valkey 9.1, Typesense 30.2, SeaweedFS 4.46 (S3), Mailpit, optional Metabase. Bucket and CORS setup. The S3 smoke test (presigned PUT, size-limited presigned POST, CORS) passes |
 | 4. Configuration | Done | zod schema for every spec §18 variable plus `API_PORT` and `LOG_LEVEL`, with conditional provider rules and production guards. Local defaults mean a fresh clone needs no `.env`. Errors list keys, never values. `.env.example` documents everything |
-| 5. API skeleton (5a spike first) | In progress | |
+| 5. API skeleton (5a spike first) | Done | NestJS 12 on Fastify (ESM). Zod validation through Standard Schema, and OpenAPI 3.1 from the same schemas (ADR-0013). RFC 9457 problem details. pino with redaction and correlation ids. OpenTelemetry preload. Swagger UI at `/docs` outside production. Deny-by-default route declarations. `/v1/health`. `/v1/ready` moves to step 6, where its database and Valkey checks live |
+| 6. Database, jobs and platform tables | In progress | |
 | 6. Database, jobs and platform tables | Not started | |
 | 7. OpenAPI and the generated client | Not started | |
 | 8. App and UI package scaffolds | Not started | |

@@ -35,6 +35,8 @@ export function voltdrop({ tsconfigRootDir, environment = 'node', ignores = [] }
       rules: {
         '@typescript-eslint/no-explicit-any': 'error',
         '@typescript-eslint/no-non-null-assertion': 'error',
+        // NestJS modules are decorated classes with no body, by design.
+        '@typescript-eslint/no-extraneous-class': ['error', { allowWithDecorator: true }],
         '@typescript-eslint/consistent-type-imports': [
           'error',
           { fixStyle: 'inline-type-imports' },

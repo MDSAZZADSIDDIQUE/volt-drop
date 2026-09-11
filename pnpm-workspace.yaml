@@ -9,3 +9,9 @@ saveExact: true
 # default in pnpm 11). Add a package only after checking what its script does.
 allowBuilds:
   lefthook: true
+  # Only checks that the platform binary installed (node postinstall.js); needed by unplugin-swc.
+  '@swc/core': true
+  # Denied: install analytics that report to Scarf (pulled in by swagger-ui-dist); not needed to run.
+  '@scarf/scarf': false
+  # Denied: not needed at runtime by the OpenTelemetry exporters that pull it in.
+  protobufjs: false

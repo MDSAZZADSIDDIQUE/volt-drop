@@ -14,6 +14,10 @@ import { ApiModule } from './api.module.js';
 /** Request bodies above this are rejected with 413 (spec §12: request size limits). */
 const BODY_LIMIT_BYTES = 1024 * 1024;
 
+// TODO(M2): rate limiting per IP, user and route, backed by Valkey (spec §12). Until it exists,
+// nothing throttles the public endpoints, and each /v1/ready call costs several round-trips.
+// TODO(M1): strict CSP, HSTS and framing headers for the API and the web apps (spec §12).
+
 export interface CreateAppOptions {
   readonly logger: Logger;
   /** Extra modules to mount, for tests. */

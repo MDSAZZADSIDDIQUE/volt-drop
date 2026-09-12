@@ -21,7 +21,7 @@ Docker Compose runs every service the apps need locally (spec §4). Docker Deskt
 | Mailpit 1.31 | `axllent/mailpit` | 1025 (SMTP), 8025 (web inbox) | any |
 | Metabase 0.63 (optional) | `metabase/metabase` | 3001 | set up on first visit |
 
-All credentials are local-only placeholders, not secrets. Images are pinned by tag and digest. The Postgres image tracks AWS RDS for PostgreSQL 18: PostGIS is on the same 3.6 line, while pgvector is a later 0.8 patch release than RDS's 0.8.1 (see the Dockerfile). The integration tests build the same image.
+Every port is published on `127.0.0.1`, so the services answer only on this machine: Valkey needs no password, and the Postgres credentials are the ones above, so neither should be reachable from a café or office network. All credentials are local-only placeholders, not secrets. Images are pinned by tag and digest. The Postgres image tracks AWS RDS for PostgreSQL 18: PostGIS is on the same 3.6 line, while pgvector is a later 0.8 patch release than RDS's 0.8.1 (see the Dockerfile). The integration tests build the same image.
 
 - **Metabase** only starts when you ask for it: `docker compose -f infra/docker/docker-compose.yml --profile reporting up -d`.
 - **SeaweedFS** replaces MinIO, which no longer publishes images (ADR-0010).

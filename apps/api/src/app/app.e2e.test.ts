@@ -226,6 +226,24 @@ describe('API skeleton', () => {
 
     await request(app.getHttpServer()).get('/docs').expect(200);
   });
+
+  it('has no idempotent route outside the tests until keys are scoped to the caller', async () => {
+    // Every caller shares one idempotency scope until sign-in arrives (ADR-0014, TODO(M2)), so a
+    // second caller who repeats a request with the same key would be served the first caller's
+    // stored response. No real route may take an Idempotency-Key before that scope exists.
+    const response = await request(app.getHttpServer()).get('/docs/openapi.json').expect(200);
+    const document = response.body as { paths: Record<string, unknown> };
+    const idempotentRoutes = Object.entries(document.paths)
+      .filter(([path]) => !path.startsWith('/v1/test/'))
+      .flatMap(([path, pathItem]) =>
+        Object.entries(pathItem as Record<string, { parameters?: { name?: string }[] }>)
+          .filter(([, operation]) =>
+            operation.parameters?.some((parameter) => parameter.name === 'Idempotency-Key'),
+          )
+          .map(([method]) => `${method.toUpperCase()} ${path}`),
+      );
+    expect(idempotentRoutes).toEqual([]);
+  });
 });
 
 describe('start-up checks and production', () => {

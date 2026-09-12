@@ -54,7 +54,8 @@ const commaSeparated = z.string().transform((value) =>
     .filter((item) => item !== ''),
 );
 
-const EnvObject = z.object({
+/** Exported so a test can check that .env.example documents every variable. */
+export const EnvObject = z.object({
   APP_ENV: z.enum(['local', 'staging', 'production']),
   NODE_ENV: z.enum(['development', 'test', 'production']),
   API_PORT: z.coerce.number().int().min(1).max(65_535),

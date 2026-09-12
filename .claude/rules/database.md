@@ -17,7 +17,7 @@ Spec §4 (Database, ORM and migrations), §6 (State and consistency) and §7. Po
 - Forward-only. Never edit or delete a migration once it has reached `main`: add a new one. CI's `pnpm check:migrations` fails otherwise.
 - Change a module's `schema.ts`, run `pnpm db:generate`, and read the generated SQL before committing it.
 - Hand-written SQL (triggers, functions, seed rows, data changes) goes in a migration of its own, created empty with `pnpm --filter @voltdrop/api exec drizzle-kit generate --custom --name=<what_it_does>`. Never add it to a generated one.
-- Never edit `drizzle/meta`; drizzle-kit writes it.
+- Never edit `drizzle/meta`; drizzle-kit writes it. The Claude Code hook and deny rules block edits to it (ADR-0009), while new migration SQL stays editable.
 - Apply with `pnpm db:migrate`, which also installs Graphile Worker's schema.
 - A migration must work on tables that already hold data: add a column as nullable or with a default, backfill it, then tighten the constraint in a later migration.
 

@@ -105,7 +105,10 @@ export class FeatureFlagService {
       })
       .from(featureFlags)
       .where(eq(featureFlags.key, key));
-    this.cache.set(key, { loadedAt: now, settings });
+    // Never cache settings a transaction can still roll back (see PolicyService.current).
+    if (!this.database.inTransaction) {
+      this.cache.set(key, { loadedAt: now, settings });
+    }
     return settings;
   }
 }

@@ -54,3 +54,4 @@ Spec §4 to §6 and §12. The platform module (`src/modules/platform`) is the wo
 ## Logging and privacy
 
 - Log through the injected pino logger (`LOGGER`) as structured fields; the correlation id is added for you. Never log names, emails, phone numbers, addresses, tokens or free text, and extend the redaction paths in `src/core/logging` when a new field could carry them.
+- Redaction replaces the value of a sensitive key, including a bare `name`, and scans every other string. Log the name of something that isn't a person under its own key (`storeName`, `productName`), and keep identifiers in keys that end in `id` (`orderId`, `order_id`), which are left intact.

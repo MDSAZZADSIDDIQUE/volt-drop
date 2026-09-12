@@ -8,7 +8,10 @@ import { execFileSync } from 'node:child_process';
 
 const MIGRATIONS = 'apps/api/drizzle';
 const JOURNAL = `${MIGRATIONS}/meta/_journal.json`;
-const baseRef = process.argv[2] ?? 'origin/main';
+// A branch that has just been created, or was force-pushed, reports an all-zero commit as the one it
+// replaced. There is nothing to compare with, so fall back to main.
+const requestedRef = process.argv[2] ?? 'origin/main';
+const baseRef = /^0+$/.test(requestedRef) ? 'origin/main' : requestedRef;
 
 function git(...args) {
   return execFileSync('git', args, { encoding: 'utf8', stdio: ['ignore', 'pipe', 'pipe'] }).trim();

@@ -3,7 +3,11 @@ import { toApiProblem } from './problem.js';
 export interface ApiClientConfig {
   /** The API's origin, for example `https://api.voltdrop.example`. Empty means same origin. */
   readonly baseUrl: string;
-  /** Extra headers for every request. TODO(M2): the session or bearer token goes here. */
+  /**
+   * Extra headers for every request. TODO(M2): the session or bearer token goes here, but this
+   * config is a module-level global, and a server that renders for many people (Next.js) shares one
+   * module instance: per-user headers must move to a per-request value before a token is added.
+   */
   readonly headers?: () => HeadersInit | Promise<HeadersInit>;
   /** Replaces the global fetch, for tests and server rendering. */
   readonly fetch?: typeof globalThis.fetch;

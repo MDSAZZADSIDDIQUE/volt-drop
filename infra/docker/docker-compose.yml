@@ -1,5 +1,6 @@
 # Local development services (spec §4). Start with `pnpm infra:up`, stop with `pnpm infra:down`.
-# Every image is pinned by tag and digest. Credentials here are local-only placeholders, not secrets.
+# Every image is pinned by tag and digest. Credentials here are local-only placeholders, not secrets,
+# and every port is published on 127.0.0.1 so nothing is reachable from the network you're on.
 name: voltdrop
 
 services:
@@ -12,7 +13,7 @@ services:
       POSTGRES_PASSWORD: voltdrop
       POSTGRES_DB: voltdrop
     ports:
-      - '5432:5432'
+      - '127.0.0.1:5432:5432'
     volumes:
       # PostgreSQL 18 images keep their data under /var/lib/postgresql/18/docker.
       - postgres-data:/var/lib/postgresql
@@ -29,7 +30,7 @@ services:
     # Valkey is never the source of truth (spec §4), so it keeps nothing on disk.
     command: ['valkey-server', '--save', '', '--appendonly', 'no']
     ports:
-      - '6379:6379'
+      - '127.0.0.1:6379:6379'
     healthcheck:
       test: ['CMD', 'valkey-cli', 'ping']
       interval: 5s
@@ -40,7 +41,7 @@ services:
     image: typesense/typesense:30.2@sha256:610f2d34b1f93d00762869da2c67736775e5798d19a2c8b91b014b8a0cc1e110
     command: ['--data-dir=/data', '--api-key=local-dev-typesense-key', '--enable-cors']
     ports:
-      - '8108:8108'
+      - '127.0.0.1:8108:8108'
     volumes:
       - typesense-data:/data
     healthcheck:
@@ -65,7 +66,7 @@ services:
       - -s3.port=8333
       - -s3.config=/etc/seaweedfs/s3.json
     ports:
-      - '9000:8333'
+      - '127.0.0.1:9000:8333'
     volumes:
       - s3-data:/data
       - ./seaweedfs/s3.json:/etc/seaweedfs/s3.json:ro
@@ -81,8 +82,8 @@ services:
       MP_SMTP_AUTH_ACCEPT_ANY: '1'
       MP_SMTP_AUTH_ALLOW_INSECURE: '1'
     ports:
-      - '1025:1025'
-      - '8025:8025'
+      - '127.0.0.1:1025:1025'
+      - '127.0.0.1:8025:8025'
     healthcheck:
       test: ['CMD', '/mailpit', 'readyz']
       interval: 5s
@@ -101,7 +102,7 @@ services:
       MB_DB_USER: voltdrop
       MB_DB_PASS: voltdrop
     ports:
-      - '3001:3000'
+      - '127.0.0.1:3001:3000'
     depends_on:
       postgres:
         condition: service_healthy

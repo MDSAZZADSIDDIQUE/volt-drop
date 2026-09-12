@@ -65,6 +65,7 @@ Details that don't affect architecture, money, compliance, security or retention
 | CI runs on `ubuntu-latest` only, with actions pinned to commit SHAs, `permissions: contents: read`, and superseded runs cancelled, because the private repository's Actions minutes are metered | M0 plan step 9 | M0 |
 | The Claude Code file protection goes slightly beyond ADR-0009's minimum. The hook blocks a tool call it can't read (it fails closed). Reads of `.env.*.local` files are denied as well as `.env` and `.env.local`. The protected patterns that have no exceptions also get `Edit` deny rules, which cover shell redirections too | ADR-0009 (implementation notes) | M0 |
 | When an AI agent runs `next dev`, Next.js writes `AGENTS.md`, and a `CLAUDE.md` that imports it, into `apps/customer-web`; there's no setting to turn this off. Both are committed unchanged: they point agents at the docs for the installed Next.js version, and the web rules refer to them | M0 plan step 10 | M0 |
+| Every local service publishes its port on `127.0.0.1` rather than all interfaces, so Valkey (which needs no password) and PostgreSQL aren't reachable from whatever network the laptop is on. Found by the M0 security review | M0 step 12 (security review) | M0 |
 
 ## Answered
 

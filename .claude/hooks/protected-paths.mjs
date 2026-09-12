@@ -2,7 +2,9 @@
 // these rules as a PreToolUse hook; they live in their own file so they can be unit tested.
 import path from 'node:path';
 
-const GENERATED_CLIENT = 'packages/api-client/src/generated/';
+// Written by a generator, never by hand. New migrations are fine; their snapshots and journal
+// belong to drizzle-kit (.claude/rules/database.md).
+const GENERATED_PATHS = ['packages/api-client/src/generated/', 'apps/api/drizzle/meta/'];
 
 /**
  * Why Claude may not change `filePath`, or `undefined` when it may. A relative `filePath` is
@@ -33,11 +35,11 @@ export function protectedReason(filePath, { projectDir, cwd = projectDir }) {
     relative !== '..' &&
     !relative.startsWith(`..${path.sep}`) &&
     !path.isAbsolute(relative);
-  if (
-    insideProject &&
-    relative.split(path.sep).join('/').toLowerCase().startsWith(GENERATED_CLIENT)
-  ) {
-    return 'the API client is generated. Change the API, then run pnpm api:generate';
+  const relativePosix = relative.split(path.sep).join('/').toLowerCase();
+  if (insideProject && GENERATED_PATHS.some((prefix) => relativePosix.startsWith(prefix))) {
+    return relativePosix.startsWith('apps/api/drizzle/meta/')
+      ? "drizzle-kit writes the migration journal and snapshots. Change a module's schema.ts, then run pnpm db:generate"
+      : 'the API client is generated. Change the API, then run pnpm api:generate';
   }
   return undefined;
 }

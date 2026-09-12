@@ -4,6 +4,8 @@
 import { register } from 'node:module';
 import { OTLPTraceExporter } from '@opentelemetry/exporter-trace-otlp-http';
 import { HttpInstrumentation } from '@opentelemetry/instrumentation-http';
+import { IORedisInstrumentation } from '@opentelemetry/instrumentation-ioredis';
+import { PgInstrumentation } from '@opentelemetry/instrumentation-pg';
 import { resourceFromAttributes } from '@opentelemetry/resources';
 import { NodeSDK } from '@opentelemetry/sdk-node';
 import { ATTR_SERVICE_NAME } from '@opentelemetry/semantic-conventions';
@@ -22,7 +24,12 @@ if (endpoint !== undefined && endpoint !== '') {
   const sdk = new NodeSDK({
     resource: resourceFromAttributes({ [ATTR_SERVICE_NAME]: serviceName }),
     traceExporter: new OTLPTraceExporter({ url: `${endpoint.replace(/\/+$/, '')}/v1/traces` }),
-    instrumentations: [new HttpInstrumentation()],
+    // HTTP, PostgreSQL and Valkey: the three places a request spends its time (spec §13).
+    instrumentations: [
+      new HttpInstrumentation(),
+      new PgInstrumentation(),
+      new IORedisInstrumentation(),
+    ],
   });
   sdk.start();
 

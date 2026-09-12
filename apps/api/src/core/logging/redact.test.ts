@@ -61,6 +61,51 @@ describe('redact()', () => {
     expect(redact(value)).toEqual(value);
   });
 
+  it('scans ordinary words that merely end in the letters of an identifier', () => {
+    expect(
+      redact({
+        paid: 'card ending 1234, receipt to ada@example.com',
+        valid: 'until M1 1AE',
+        void: 'call 07700 900123',
+        grid: 'M1 1AE',
+      }),
+    ).toEqual({
+      paid: 'card ending 1234, receipt to [email]',
+      valid: 'until [postcode]',
+      void: 'call [phone]',
+      grid: '[postcode]',
+    });
+  });
+
+  it('keeps identifier values intact whatever the key style', () => {
+    const value = {
+      id: 'ab1c2de',
+      order_id: 'ab1c2de',
+      ORDER_ID: 'ab1c2de',
+      orderId: 'ab1c2de',
+      uuid: '0192f3a1-7b2c-7d3e-8f40-123456789abc',
+    };
+    expect(redact(value)).toEqual(value);
+  });
+
+  it('redacts a bare name, contact and recipient, but not the name of a thing', () => {
+    expect(
+      redact({
+        name: 'Ada Lovelace',
+        contact: 'Ada',
+        recipient: 'Ada',
+        storeName: 'Tech Hub Oldham Street',
+        productName: 'Anker USB-C cable',
+      }),
+    ).toEqual({
+      name: REDACTED,
+      contact: REDACTED,
+      recipient: REDACTED,
+      storeName: 'Tech Hub Oldham Street',
+      productName: 'Anker USB-C cable',
+    });
+  });
+
   it('handles arrays, dates, bigints, binary data and functions', () => {
     expect(
       redact({

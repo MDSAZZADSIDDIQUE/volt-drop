@@ -3,6 +3,9 @@
  * numbers, addresses, tokens and free-text fields). Values under sensitive keys are replaced whole;
  * every other string is scanned for email addresses, UK phone numbers and UK postcodes.
  * Over-redaction is the safe way to fail.
+ *
+ * A bare `name` is redacted, because it is usually a person. Log the names of things that aren't
+ * people under their own keys instead: `storeName`, `productName`, `merchantName`.
  */
 export const REDACTED = '[redacted]';
 
@@ -13,6 +16,7 @@ const MAX_SCANNED_LENGTH = 10_000;
 // `firstName` and `First-Name` all match `firstname`.
 const SENSITIVE_KEYS: ReadonlySet<string> = new Set([
   // People's names
+  'name',
   'firstname',
   'lastname',
   'fullname',
@@ -26,6 +30,8 @@ const SENSITIVE_KEYS: ReadonlySet<string> = new Set([
   'buyername',
   'staffname',
   // Contact details
+  'contact',
+  'recipient',
   'email',
   'emailaddress',
   'phone',
@@ -100,13 +106,19 @@ const EMAIL = /[\w.%+-]+@[\w-]+(?:\.[\w-]+)+/g;
 const UK_PHONE = /(?:\+44\s?|\b0)\d(?:\s?\d){8,9}\b/g;
 const UK_POSTCODE = /\b[A-Z]{1,2}\d[A-Z\d]?\s?\d[A-Z]{2}\b/gi;
 
+// `id`, `order_id`, `ORDER_ID`, `orderId`, `uuid`: the whole word, or one preceded by a separator or
+// by the case change of camelCase. Ordinary words that happen to end in those letters, such as
+// `paid`, `valid`, `void` and `overpaid`, are scanned like any other string.
+const IDENTIFIER_KEY = /^(?:id|uuid|guid)$|[^A-Za-z](?:id|uuid|guid)$/i;
+const CAMEL_IDENTIFIER_KEY = /[a-z0-9](?:Id|Uuid|UUID|Guid|GUID)$/;
+
 function normaliseKey(key: string): string {
   return key.toLowerCase().replace(/[^a-z0-9]/g, '');
 }
 
-/** Keys such as `id`, `orderId` or `correlationId` hold identifiers, which are safe to log as they are. */
+/** Identifier values are safe to log as they are, and scanning them would mangle them. */
 function isIdentifierKey(key: string): boolean {
-  return normaliseKey(key).endsWith('id');
+  return IDENTIFIER_KEY.test(key) || CAMEL_IDENTIFIER_KEY.test(key);
 }
 
 export function redactString(value: string): string {

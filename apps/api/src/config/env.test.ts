@@ -1,7 +1,7 @@
 import { readFileSync } from 'node:fs';
 import { parseEnv } from 'node:util';
 import { describe, expect, it } from 'vitest';
-import { EnvError, loadEnv, LOCAL_AUTH_SECRET } from './env.js';
+import { EnvError, EnvObject, loadEnv, LOCAL_AUTH_SECRET } from './env.js';
 
 const envExample = parseEnv(
   readFileSync(new URL('../../../../.env.example', import.meta.url), 'utf8'),
@@ -74,6 +74,13 @@ describe('loadEnv()', () => {
 
   it('accepts .env.example exactly as committed', () => {
     expect(problemsFor(envExample)).toEqual([]);
+  });
+
+  it('documents every variable in .env.example', () => {
+    // The file is the only place a new variable is explained, so nothing may be added to the schema
+    // without a line there (the client-app variables in the file belong to the bundlers, not here).
+    const documented = new Set(Object.keys(envExample));
+    expect(Object.keys(EnvObject.shape).filter((key) => !documented.has(key))).toEqual([]);
   });
 
   it('treats empty values as unset', () => {

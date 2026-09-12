@@ -80,7 +80,11 @@ export class PolicyService {
     if (stored === undefined) {
       throw new PolicyError(`Policy "${policy.key}" has no version in force.`);
     }
-    this.cache.set(policy.key, { loadedAt: now.getTime(), stored });
+    // Never cache a value a transaction can still roll back: `executor` is the caller's open
+    // transaction, and this cache is shared by every request in the process.
+    if (!this.database.inTransaction) {
+      this.cache.set(policy.key, { loadedAt: now.getTime(), stored });
+    }
     return this.parse(policy, stored);
   }
 
@@ -103,6 +107,9 @@ export class PolicyService {
   /**
    * Adds the next version. Existing versions are never changed; a database trigger enforces it.
    * TODO(M2): write an audit entry with the author and reason (invariant 8).
+   * TODO(M13): two publishes of the same key at once both compute the same next version, so one
+   * fails on the primary key with an unmapped 23505 (a generic 500). The admin editors in M13 are
+   * the first callers that can trigger it: map it to a conflict problem, or lock the key first.
    */
   async publish<TSchema extends z.ZodType>(
     tx: Transaction,

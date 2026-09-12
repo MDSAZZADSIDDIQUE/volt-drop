@@ -10,7 +10,8 @@
       "Edit(*.tfstate)",
       "Edit(*.tfstate.*)",
       "Edit(.terraform/**)",
-      "Edit(/packages/api-client/src/generated/**)"
+      "Edit(/packages/api-client/src/generated/**)",
+      "Edit(/apps/api/drizzle/meta/**)"
     ]
   },
   "hooks": {

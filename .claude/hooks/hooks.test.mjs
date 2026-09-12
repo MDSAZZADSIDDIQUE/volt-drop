@@ -39,6 +39,8 @@ describe('protectedReason', () => {
     'packages/api-client/src/generated/voltdrop.ts',
     'packages/api-client/src/generated/models/order.ts',
     'Packages/API-Client/src/Generated/voltdrop.ts',
+    'apps/api/drizzle/meta/_journal.json',
+    'apps/api/drizzle/meta/0003_snapshot.json',
   ];
   for (const file of blocked) {
     it(`blocks ${file}`, () => {
@@ -56,6 +58,9 @@ describe('protectedReason', () => {
     'packages/api-client/src/generated-notes.md',
     'packages/api-client/openapi.json',
     'infra/terraform/main.tf',
+    // New migrations are written by hand or by drizzle-kit; only meta/ is off limits.
+    'apps/api/drizzle/0003_add_orders.sql',
+    'apps/api/src/modules/orders/schema.ts',
   ];
   for (const file of allowed) {
     it(`allows ${file}`, () => {

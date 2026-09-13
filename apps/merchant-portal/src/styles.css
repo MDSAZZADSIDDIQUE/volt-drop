@@ -1,4 +1,5 @@
 @import 'tailwindcss';
+@import '@voltdrop/ui-tokens/fonts.css';
 @import '@voltdrop/ui-tokens/tokens.css';
 @import '@voltdrop/ui-tokens/theme.css';
 

@@ -2,7 +2,7 @@
 
 The live list of questions the spec can't answer by itself. Each entry says who needs to answer, what it blocks, and where it came from. When a question is answered, record the answer (or the ADR that captures it), and move the entry to "Answered" at the bottom.
 
-Last updated: 2026-09-12 (M0 step 10).
+Last updated: 2026-09-13 (the design direction and P6 answered).
 
 ## For the solicitor
 
@@ -39,7 +39,6 @@ Last updated: 2026-09-12 (M0 step 10).
 | P3 | Delivery-fee policy values: base fee, distance bands, minimum and maximum, free-delivery threshold, small-basket surcharge and margin alert threshold. | M5 | ADR-0002 |
 | P4 | Typesense Cloud region, data-processing terms and budget (reconfirm before M14). | M14 | ADR-0010 |
 | P5 | Which domain name will we use for the email sender and web apps? (Error `type` codes use a URN, so they don't depend on it.) | M11 | M0 plan |
-| P6 | Is the GitHub repository private? This affects CodeQL availability and Actions minutes. | M0 CI, M14 | M0 plan |
 | P7 | Do you want Dependabot or Renovate for dependency update pull requests? | M0 | M0 plan |
 | P8 | How long should dispatched outbox events be kept? They hold identifiers, not personal data, and help when investigating incidents. Until you decide, nothing is deleted. A suggested default is 30 days after dispatch. | M13 | ADR-0015 |
 
@@ -62,10 +61,13 @@ Details that don't affect architecture, money, compliance, security or retention
 | No `eslint-plugin-jsx-a11y` yet: its newest release (6.10.2) doesn't support ESLint 10. Components are tested for roles, names, keyboard use and focus instead, and the plugin is re-checked before M1 | M0 plan step 8 | M0 |
 | The spec's CORS allowlist (§12) is exactly the three web apps' origins from the environment (`CUSTOMER_WEB_URL`, `ADMIN_URL`, `MERCHANT_PORTAL_URL`), with no credentials until sign-in (M2). `AUTH_TRUSTED_ORIGINS` stays for the auth library | M0 plan step 8 | M0 |
 | Turbo runs cached tasks in strict environment mode. The apps' public variables (`NEXT_PUBLIC_*`, `VITE_*`, `EXPO_PUBLIC_*`) need no declaration: Turbo's framework inference hashes and passes them (checked with a dry run). The telemetry opt-outs and `CI` pass through without affecting cache keys. `dev` and `test:int` are never cached, so they run in loose mode and see the whole shell environment | M0 plan step 9 | M0 |
-| CI runs on `ubuntu-latest` only, with actions pinned to commit SHAs, `permissions: contents: read`, and superseded runs cancelled, because the private repository's Actions minutes are metered | M0 plan step 9 | M0 |
+| CI runs on `ubuntu-latest` only, like production, while this Windows machine covers the other platform locally. Actions are pinned to commit SHAs, the token is `contents: read`, and a newer push cancels the run it replaces, so an outdated run never holds up the new one | M0 plan step 9 | M0 |
 | The Claude Code file protection goes slightly beyond ADR-0009's minimum. The hook blocks a tool call it can't read (it fails closed). Reads of `.env.*.local` files are denied as well as `.env` and `.env.local`. The protected patterns that have no exceptions also get `Edit` deny rules, which cover shell redirections too | ADR-0009 (implementation notes) | M0 |
 | When an AI agent runs `next dev`, Next.js writes `AGENTS.md`, and a `CLAUDE.md` that imports it, into `apps/customer-web`; there's no setting to turn this off. Both are committed unchanged: they point agents at the docs for the installed Next.js version, and the web rules refer to them | M0 plan step 10 | M0 |
 | Every local service publishes its port on `127.0.0.1` rather than all interfaces, so Valkey (which needs no password) and PostgreSQL aren't reachable from whatever network the laptop is on. Found by the M0 security review | M0 step 12 (security review) | M0 |
+| Loom leaves the `warning` and `danger` roles open, so they keep their accessible signal colours (`#8A5A00`, `#B42318`). Earth Yellow becomes a graphics-only `success-stripe` role, and every corner radius is 2 px | ADR-0019 | Before M1 |
+| Loom's type scale (1.25 on 16 px) replaces Tailwind's sizes of the same names, from `text-sm` (13 px) to `text-4xl` (49 px): rem on the web, px on NativeWind. The web Button's labels use 16 px | ADR-0019 | Before M1 |
+| The typefaces come from pinned Fontsource packages through `@voltdrop/ui-tokens/fonts.css`, which every web app imports. The Expo apps keep the platform font until M6 | ADR-0019 | Before M1 |
 
 ## Answered
 
@@ -73,3 +75,5 @@ Details that don't affect architecture, money, compliance, security or retention
 |---|---|---|
 | Kickoff (c)1 to (c)11 | Adopted in spec v1.1, see ADR-0002 to ADR-0011 | 2026-09-11 |
 | M0 decisions D1 to D10 | Approved as recommended in `docs/plans/M0-plan.md` | 2026-09-11 |
+| Design direction (spec §9) | Direction A, Loom (`docs/design/directions.md`). Its colours, type scale, radii, focus ring and self-hosted typefaces go into `packages/ui-tokens` in a follow-up pull request once M0's pull request #1 merges (ADR-0018) | 2026-09-13 |
+| P6: is the GitHub repository private? | No, it's public. CodeQL code scanning and GitHub-hosted Actions minutes are free for public repositories, so cost no longer shapes CI. The founder switched on CodeQL's default setup in the repository settings rather than waiting for M14, and its first analysis of `main` passed. Everything committed, `docs/` included, is visible to anyone | 2026-09-13 |

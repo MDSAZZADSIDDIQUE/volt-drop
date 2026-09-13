@@ -30,7 +30,9 @@ Spec §4 (Customer web, Internal web), §6 (Frontend), §9, §11.1, §11.3 and �
 
 ## Styling
 
-- Tailwind with the token utilities from `@voltdrop/ui-tokens`: no raw hex values or one-off colours. Token values are placeholders until the founder chooses a design direction (docs/design/directions.md).
+- Tailwind with the token utilities from `@voltdrop/ui-tokens`: no raw hex values or one-off colours. The values are Direction A, Loom (docs/design/directions.md, ADR-0019), so read its principles before designing a screen. Colour carries meaning: brown acts, blue informs, green with the yellow stripe means done, grey is inactive. `success-stripe` is never text or behind text. Corners are 2 px, rules are 1 px `border-border`, and there are no shadows or gradients.
+- Type: `font-sans` (Atkinson Hyperlegible Next) for the interface, `font-heading font-stretch-condensed` (narrow Archivo) for headings, and `font-mono` (IBM Plex Mono) for specs, codes, order references and PINs. Sizes come from Loom's scale, from `text-sm` (13 px, for specs) to `text-4xl` (49 px). Prices use `tabular-nums`.
+- Each web app imports `@voltdrop/ui-tokens/fonts.css`, so the typefaces are self-hosted. Never load a font from a CDN.
 - Tailwind doesn't scan `node_modules`, so each app registers `packages/ui-web/src` with `@source`. Keep that when adding an app or a shared package.
 
 ## Copy

@@ -1,0 +1,9 @@
+/*
+ * Loom's typefaces (ADR-0019), self-hosted from pinned Fontsource packages under the SIL Open Font
+ * License 1.1. Each web app imports this file. Fonts never load from a third-party CDN, which would
+ * reveal visitors' IP addresses before they have given consent.
+ */
+@import '@fontsource-variable/atkinson-hyperlegible-next/wght.css';
+@import '@fontsource-variable/archivo/wdth.css';
+@import '@fontsource/ibm-plex-mono/400.css';
+@import '@fontsource/ibm-plex-mono/600.css';

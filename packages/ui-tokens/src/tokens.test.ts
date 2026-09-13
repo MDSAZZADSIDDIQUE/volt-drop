@@ -29,6 +29,11 @@ describe('tokens', () => {
     const ratio = contrastRatio(tokens.color[colour], tokens.color.background);
     expect(ratio, `${colour} is ${ratio.toFixed(2)}:1`).toBeGreaterThanOrEqual(3);
   });
+
+  it('never uses the stripe colour for text or behind text', () => {
+    // Earth Yellow is only for Loom's delivered and verified stripe graphic (ADR-0019).
+    expect(TEXT_PAIRS.flat()).not.toContain('success-stripe');
+  });
 });
 
 describe('generated outputs', () => {
@@ -39,25 +44,52 @@ describe('generated outputs', () => {
     for (const [name, value] of Object.entries(tokens.color)) {
       expect(css).toContain(`--vd-color-${name}: ${value};`);
     }
-    expect(css).toContain('--vd-radius-md: 4px;');
+    expect(css).toContain(`--vd-radius-md: ${tokens.radius.md};`);
     expect(css).toContain('--vd-focus-ring-width: 2px;');
     expect(css.startsWith('/* Generated')).toBe(true);
   });
 
-  it('give Tailwind 4 a utility for every colour that reads its variable', () => {
+  it('give the web its type scale in rem, so text follows the browser font-size setting', () => {
+    const css = toCssVariables(tokens);
+    expect(css).toContain('--vd-text-base: 1rem;');
+    expect(css).toContain('--vd-text-base-line-height: 1.5rem;');
+    expect(css).toContain('--vd-text-sm: 0.8125rem;');
+  });
+
+  it('give Tailwind 4 a utility for every colour, font and text size that reads its variable', () => {
     const theme = toTailwindTheme(tokens);
     expect(theme).toContain('@theme inline {');
     for (const name of colours) {
       expect(theme).toContain(`--color-${name}: var(--vd-color-${name});`);
     }
-    expect(theme).toContain('--font-mono: var(--vd-font-mono);');
+    for (const name of Object.keys(tokens.font)) {
+      expect(theme).toContain(`--font-${name}: var(--vd-font-${name});`);
+    }
+    for (const name of Object.keys(tokens.fontSize)) {
+      expect(theme).toContain(`--text-${name}: var(--vd-text-${name});`);
+      expect(theme).toContain(`--text-${name}--line-height: var(--vd-text-${name}-line-height);`);
+    }
   });
 
-  it('give NativeWind the same colours and radii as a Tailwind 3 preset', () => {
+  it('give NativeWind the same colours, radii and text sizes, in px, as a Tailwind 3 preset', () => {
     const sandbox = { module: { exports: {} as unknown } };
     runInNewContext(toTailwindPreset(tokens), sandbox);
     expect(sandbox.module.exports).toEqual({
-      theme: { extend: { colors: tokens.color, borderRadius: tokens.radius } },
+      theme: {
+        extend: {
+          colors: tokens.color,
+          borderRadius: tokens.radius,
+          fontSize: {
+            sm: ['13px', { lineHeight: '18px' }],
+            base: ['16px', { lineHeight: '24px' }],
+            lg: ['20px', { lineHeight: '28px' }],
+            xl: ['25px', { lineHeight: '32px' }],
+            '2xl': ['31px', { lineHeight: '40px' }],
+            '3xl': ['39px', { lineHeight: '48px' }],
+            '4xl': ['49px', { lineHeight: '56px' }],
+          },
+        },
+      },
     });
   });
 });

@@ -19,7 +19,8 @@ export const buttonVariants = cva(
       },
       // At least 40 px tall: well over the 24 px minimum target size (WCAG 2.2: 2.5.8).
       size: {
-        md: 'h-10 px-4 text-sm',
+        // Loom's body size (16 px) for labels; its 13 px step is for specs and codes.
+        md: 'h-10 px-4 text-base',
         lg: 'h-12 px-6 text-base',
       },
     },

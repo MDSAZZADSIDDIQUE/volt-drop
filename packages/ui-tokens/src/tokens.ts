@@ -1,32 +1,56 @@
 /**
- * VoltDrop design tokens (spec §9, ADR-0018): the only place colours, radii, fonts and focus
- * styles are defined. Web and native styles are generated from this file.
+ * VoltDrop design tokens (spec §9, ADR-0018): the only place colours, radii, fonts, text sizes and
+ * focus styles are defined. Web and native styles are generated from this file.
  *
- * PLACEHOLDER VALUES. They are neutral and accessible, and exist so the apps can be built before
- * the founder chooses a design direction (docs/design/directions.md). After that choice, only the
- * values here change: the role names below are ones both directions fill.
+ * The values are Direction A, Loom, which the founder chose on 2026-09-13 (docs/design/directions.md,
+ * ADR-0019): UK flex-cable colours and the spec labels printed on tech packaging.
  */
 export const tokens = {
   color: {
-    background: '#FFFFFF',
-    surface: '#F6F7F8',
+    /** Insulation White: the page. */
+    background: '#F7F8F9',
+    /** White panels and cards on the page. */
+    surface: '#FFFFFF',
+    /** Conduit Black: text. */
     foreground: '#16181B',
+    /** Sheath Grey: secondary text and inactive states. */
     'muted-foreground': '#5B6168',
-    /** Borders that identify controls (inputs, buttons), so at least 3:1 against the background. */
-    border: '#6E747B',
-    primary: '#1F2937',
+    /** Sheath Grey rules. Borders that identify controls need 3:1 against the background. */
+    border: '#5B6168',
+    /** Live Brown: primary actions, and the live wire in the tracker. */
+    primary: '#6B3F22',
     'primary-foreground': '#FFFFFF',
+    /** Neutral Blue: links and information. */
     link: '#1F5FA8',
+    /** Neutral Blue focus rings. */
     focus: '#1F5FA8',
+    /** Earth Green: done and verified. */
     success: '#2E7D32',
+    /** Earth Yellow: only the stripe graphic that goes with success. Never text, nor behind text. */
+    'success-stripe': '#F2C230',
+    /** Loom names no warning or danger colour, so these signal colours stay (ADR-0019). */
     warning: '#8A5A00',
     danger: '#B42318',
   },
-  radius: { sm: '2px', md: '4px', lg: '6px' },
-  /** System fonts until the chosen direction's typefaces are self-hosted here. */
+  /** Loom uses one corner radius for everything. */
+  radius: { sm: '2px', md: '2px', lg: '2px' },
   font: {
-    sans: 'ui-sans-serif, system-ui, sans-serif',
-    mono: 'ui-monospace, SFMono-Regular, Menlo, Consolas, monospace',
+    /** Atkinson Hyperlegible Next: the interface and body text. */
+    sans: "'Atkinson Hyperlegible Next Variable', ui-sans-serif, system-ui, sans-serif",
+    /** Archivo: headings, set narrow with `font-stretch-condensed` (75%). */
+    heading: "'Archivo Variable', ui-sans-serif, system-ui, sans-serif",
+    /** IBM Plex Mono: specs, codes, order references and PINs. */
+    mono: "'IBM Plex Mono', ui-monospace, SFMono-Regular, Menlo, Consolas, monospace",
+  },
+  /** Loom's type scale: a 1.25 ratio on 16 px. Sizes and line heights in px. */
+  fontSize: {
+    sm: { size: 13, lineHeight: 18 },
+    base: { size: 16, lineHeight: 24 },
+    lg: { size: 20, lineHeight: 28 },
+    xl: { size: 25, lineHeight: 32 },
+    '2xl': { size: 31, lineHeight: 40 },
+    '3xl': { size: 39, lineHeight: 48 },
+    '4xl': { size: 49, lineHeight: 56 },
   },
   focusRing: { width: '2px', offset: '2px' },
 } as const;

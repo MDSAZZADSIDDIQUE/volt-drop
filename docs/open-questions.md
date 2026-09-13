@@ -72,5 +72,5 @@ Details that don't affect architecture, money, compliance, security or retention
 |---|---|---|
 | Kickoff (c)1 to (c)11 | Adopted in spec v1.1, see ADR-0002 to ADR-0011 | 2026-09-11 |
 | M0 decisions D1 to D10 | Approved as recommended in `docs/plans/M0-plan.md` | 2026-09-11 |
-| Design direction (spec §9) | Direction A, Loom (`docs/design/directions.md`). Its colours, type scale, radii, focus ring and self-hosted typefaces go into `packages/ui-tokens` next (ADR-0018) | 2026-09-13 |
-| P6: is the GitHub repository private? | No, it's public. CodeQL code scanning and GitHub-hosted Actions minutes are free for public repositories, so cost no longer shapes CI. Everything committed, `docs/` included, is visible to anyone | 2026-09-13 |
+| Design direction (spec §9) | Direction A, Loom (`docs/design/directions.md`). Its colours, type scale, radii, focus ring and self-hosted typefaces go into `packages/ui-tokens` in a follow-up pull request once M0's pull request #1 merges (ADR-0018) | 2026-09-13 |
+| P6: is the GitHub repository private? | No, it's public. CodeQL code scanning and GitHub-hosted Actions minutes are free for public repositories, so cost no longer shapes CI. The founder is switching on CodeQL's default setup in the repository settings now, rather than waiting for M14. Everything committed, `docs/` included, is visible to anyone | 2026-09-13 |

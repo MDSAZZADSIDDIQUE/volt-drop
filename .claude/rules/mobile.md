@@ -16,6 +16,7 @@ Spec §4 (Mobile), §6 (Frontend), §9 (Customer app, Merchant app), §11.8 and 
 - React stays at exactly the version Expo pins (19.2.3) in every package in the repository: two copies of React break React Native at runtime.
 - `react-native-css-interop` is a direct dependency of each app, because NativeWind's Babel plugin imports it from the app's own files.
 - `ui-native` ships as TypeScript source, and each app's `tailwind.config.js` lists it under `content`, so NativeWind generates its classes.
+- The token preset gives the apps Loom's colours, 2 px radii and text sizes (ADR-0019). `TODO(M6)`: bundle its typefaces (Archivo, Atkinson Hyperlegible Next, IBM Plex Mono) with `expo-font` and add them to the preset; until then native text uses the platform font.
 
 ## Data and storage
 

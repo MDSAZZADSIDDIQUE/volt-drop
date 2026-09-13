@@ -32,3 +32,7 @@ Five apps share one visual language. The web apps use Tailwind 4, which is confi
 - **Style Dictionary.** A capable tool, but a large dependency for three small outputs.
 - **Tailwind 3 on web as well, sharing one JavaScript preset.** It would hold the web apps back from Tailwind 4, which the spec's stack uses.
 - **CSS variables on native through NativeWind's `vars()`.** Useful for runtime theming later, but more moving parts than M0 needs.
+
+## Updates
+
+- **2026-09-13:** the founder chose Loom. ADR-0019 records how its values fill these roles, the type scale added to the outputs, and the `fonts.css` entry point for the self-hosted typefaces.

@@ -3,12 +3,21 @@ import type { Tokens } from './tokens.js';
 const CSS_HEADER = '/* Generated from packages/ui-tokens/src/tokens.ts. Do not edit. */\n';
 const JS_HEADER = '// Generated from packages/ui-tokens/src/tokens.ts. Do not edit.\n';
 
+/** Pixels to rem, so text on the web follows the browser's font-size setting (16 px is 1rem). */
+function rem(px: number): string {
+  return `${String(px / 16)}rem`;
+}
+
 /** CSS custom properties holding the values, for web apps and any hand-written CSS. */
 export function toCssVariables(tokens: Tokens): string {
   const lines = [
     ...Object.entries(tokens.color).map(([name, value]) => `  --vd-color-${name}: ${value};`),
     ...Object.entries(tokens.radius).map(([name, value]) => `  --vd-radius-${name}: ${value};`),
     ...Object.entries(tokens.font).map(([name, value]) => `  --vd-font-${name}: ${value};`),
+    ...Object.entries(tokens.fontSize).flatMap(([name, { size, lineHeight }]) => [
+      `  --vd-text-${name}: ${rem(size)};`,
+      `  --vd-text-${name}-line-height: ${rem(lineHeight)};`,
+    ]),
     `  --vd-focus-ring-width: ${tokens.focusRing.width};`,
     `  --vd-focus-ring-offset: ${tokens.focusRing.offset};`,
   ];
@@ -16,23 +25,36 @@ export function toCssVariables(tokens: Tokens): string {
 }
 
 /**
- * The Tailwind 4 theme for web: utilities such as `bg-primary`, `rounded-md` and `font-mono`
- * that read the CSS variables, so a value changes in one place.
+ * The Tailwind 4 theme for web: utilities such as `bg-primary`, `rounded-md`, `font-heading` and
+ * `text-lg` that read the CSS variables, so a value changes in one place.
  */
 export function toTailwindTheme(tokens: Tokens): string {
   const lines = [
     ...Object.keys(tokens.color).map((name) => `  --color-${name}: var(--vd-color-${name});`),
     ...Object.keys(tokens.radius).map((name) => `  --radius-${name}: var(--vd-radius-${name});`),
     ...Object.keys(tokens.font).map((name) => `  --font-${name}: var(--vd-font-${name});`),
+    ...Object.keys(tokens.fontSize).flatMap((name) => [
+      `  --text-${name}: var(--vd-text-${name});`,
+      `  --text-${name}--line-height: var(--vd-text-${name}-line-height);`,
+    ]),
   ];
   return `${CSS_HEADER}@theme inline {\n${lines.join('\n')}\n}\n`;
 }
 
 /**
- * The Tailwind 3 preset for NativeWind, with the same utility names and literal values. Fonts stay
- * with the platform default until the chosen typefaces are bundled with the apps.
+ * The Tailwind 3 preset for NativeWind, with the same utility names and literal values. Text sizes
+ * are in px, because NativeWind's rem is 14. Fonts stay with the platform default until the
+ * typefaces are bundled with the apps (ADR-0019).
  */
 export function toTailwindPreset(tokens: Tokens): string {
-  const theme = { extend: { colors: { ...tokens.color }, borderRadius: { ...tokens.radius } } };
+  const fontSize = Object.fromEntries(
+    Object.entries(tokens.fontSize).map(([name, { size, lineHeight }]) => [
+      name,
+      [`${String(size)}px`, { lineHeight: `${String(lineHeight)}px` }],
+    ]),
+  );
+  const theme = {
+    extend: { colors: { ...tokens.color }, borderRadius: { ...tokens.radius }, fontSize },
+  };
   return `${JS_HEADER}module.exports = { theme: ${JSON.stringify(theme, null, 2)} };\n`;
 }

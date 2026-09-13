@@ -42,7 +42,7 @@ Recorded as `TODO(M<n>)` in the code or the ADRs, and listed here.
 - `TODO(M9)`: Europe/London schedules on Graphile Worker's UTC-only cron, tested at both clock changes (ADR-0015).
 - `TODO(M13)`: admin screens for policies, flags, the outbox backlog and failed jobs; outbox retention once open question P8 is answered.
 - `TODO(M13)`: two policy publishes of the same key at once compute the same next version, so one fails on the primary key with an unmapped 23505 and a generic 500 (`policy.service.ts`). The M13 policy editors are the first callers that can trigger it.
-- `TODO(M14)`: CodeQL or Semgrep, container scanning and an SBOM in CI (spec §12; `.github/workflows/ci.yml`). The repository is public (open question P6), so CodeQL costs nothing and could be switched on sooner.
+- `TODO(M14)`: container scanning and an SBOM in CI (spec §12; `.github/workflows/ci.yml`). CodeQL comes sooner and without a workflow file: the repository is public (open question P6), and the founder is switching on GitHub's CodeQL default setup in the repository settings.
 - `TODO(M14)`: move to Node.js 26 once it becomes Active LTS on 28 October 2026, before launch (ADR-0001, D1).
 
 ## Dependency advisories
@@ -62,6 +62,7 @@ Recorded as `TODO(M<n>)` in the code or the ADRs, and listed here.
 - **Three migrations instead of two.** Generated SQL (0001, the tables) is kept apart from hand-written SQL (0002, the append-only trigger and the policy seeds), so a regenerated migration never mixes with custom code.
 - **No `attempts` or `last_error` columns on `outbox`.** Each handler runs as its own Graphile Worker job, which already records its attempts and last error (ADR-0015).
 - **Claude Code file protection goes slightly beyond the plan.** Besides the hook and the two read denies, reads of `.env.*.local` are denied, and the protected patterns with no exceptions also get `Edit` deny rules, which catch shell redirections the hook can't see (ADR-0009, implementation notes).
+- **CodeQL comes before M14.** The plan left CodeQL or Semgrep for M14. With the repository public, the founder is switching on CodeQL's default setup now (2026-09-13); container scanning and an SBOM still wait for M14.
 
 ## Environment notes
 
@@ -83,8 +84,9 @@ Recorded as `TODO(M<n>)` in the code or the ADRs, and listed here.
 ## Next steps
 
 1. **The founder reviews and merges pull request #1** (https://github.com/MDSAZZADSIDDIQUE/volt-drop/pull/1). CI is green on it.
-2. **Apply Direction A (Loom)**, which the founder chose on 2026-09-13, to `packages/ui-tokens` (`docs/design/directions.md`, "After the choice"; ADR-0018): its colours and focus ring, 2 px radii, the 1.25 type scale, and self-hosted Archivo, Atkinson Hyperlegible Next and IBM Plex Mono. Loom names no warning or danger colour, so those two roles need values that fit it, and the contrast tests check every pairing.
-3. **Run `/doctor`** in an interactive `claude` terminal, to confirm the settings, hooks and permission rules load with no warnings.
-4. **Answer the remaining open questions that block what comes next:** P7 (Dependabot or Renovate) and P8 (how long dispatched outbox events are kept).
-5. **Bump the packages held back by the release-age rule** once they qualify, in one commit with the lockfile. Run `pnpm install` before committing it (see the environment notes).
-6. **M1, the walking skeleton, starts only with explicit approval** (`/start-milestone 1`).
+2. **The founder switches on CodeQL's default setup** in the repository's settings (Code security, then Code scanning). Its results then appear under the repository's Security tab.
+3. **Apply Direction A (Loom) in a follow-up pull request once #1 merges**, as the founder chose on 2026-09-13: put its colours and focus ring, 2 px radii, the 1.25 type scale, and self-hosted Archivo, Atkinson Hyperlegible Next and IBM Plex Mono into `packages/ui-tokens` (`docs/design/directions.md`, "After the choice"; ADR-0018). Loom names no warning or danger colour, so those two roles need values that fit it, and the contrast tests check every pairing.
+4. **Run `/doctor`** in an interactive `claude` terminal, to confirm the settings, hooks and permission rules load with no warnings.
+5. **Answer the remaining open questions that block what comes next:** P7 (Dependabot or Renovate) and P8 (how long dispatched outbox events are kept).
+6. **Bump the packages held back by the release-age rule** once they qualify, in one commit with the lockfile. Run `pnpm install` before committing it (see the environment notes).
+7. **M1, the walking skeleton, starts only with explicit approval** (`/start-milestone 1`).

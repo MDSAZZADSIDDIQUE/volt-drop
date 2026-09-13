@@ -1,6 +1,7 @@
 # VoltDrop CI (M0 plan, step 9). Actions are pinned to commit SHAs (looked up on 2026-09-11); the
 # comment after each SHA is the release it points to.
-# TODO(M14): CodeQL or Semgrep, container scanning and an SBOM (spec §12; open question P6).
+# TODO(M14): CodeQL or Semgrep, container scanning and an SBOM (spec §12). The repository is public,
+# so CodeQL costs nothing and could be switched on sooner.
 name: CI
 
 on:
@@ -11,8 +12,8 @@ on:
 permissions:
   contents: read
 
-# A newer push to the same branch cancels the run in progress (the repository is private, so
-# Actions minutes are metered).
+# A newer push to the same branch cancels the run in progress, so an outdated run never holds up
+# the new one.
 concurrency:
   group: ci-${{ github.ref }}
   cancel-in-progress: true

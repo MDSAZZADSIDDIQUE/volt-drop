@@ -1,0 +1,23 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "merchant-portal",
+      "runtimeExecutable": "pnpm",
+      "runtimeArgs": ["--filter", "@voltdrop/merchant-portal", "dev"],
+      "port": 5174
+    },
+    {
+      "name": "admin",
+      "runtimeExecutable": "pnpm",
+      "runtimeArgs": ["--filter", "@voltdrop/admin", "dev"],
+      "port": 5173
+    },
+    {
+      "name": "customer-web",
+      "runtimeExecutable": "pnpm",
+      "runtimeArgs": ["--filter", "@voltdrop/customer-web", "dev"],
+      "port": 3000
+    }
+  ]
+}

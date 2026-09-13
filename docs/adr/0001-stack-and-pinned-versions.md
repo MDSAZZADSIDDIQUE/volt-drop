@@ -50,7 +50,7 @@ Spec §4 fixes the technology stack but leaves its versions open, apart from "th
 
 ## Consequences
 
-- Upgrades are deliberate: one commit per bump, with the lockfile, after the release-age wait. Whether Dependabot or Renovate proposes them is open question P7.
+- Upgrades are deliberate: one commit per bump, with the lockfile, after the release-age wait. Renovate proposes them (ADR-0020).
 - `TODO(M14)`: move to Node.js 26 once it becomes Active LTS on 28 October 2026, before launch (D1).
 - Adopting any of these needs its own ADR: Drizzle 1.0 once it's final (D4), TypeScript 7 once typescript-eslint supports it (D2), NativeWind 5 (D8), pnpm 12 (D5).
 - Packages that M0 doesn't use yet (Better Auth, the Stripe SDK, EAS) get their versions in the milestone that adds them, under the same rules.

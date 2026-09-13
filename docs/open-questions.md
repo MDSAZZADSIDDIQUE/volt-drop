@@ -2,7 +2,7 @@
 
 The live list of questions the spec can't answer by itself. Each entry says who needs to answer, what it blocks, and where it came from. When a question is answered, record the answer (or the ADR that captures it), and move the entry to "Answered" at the bottom.
 
-Last updated: 2026-09-13 (the design direction and P6 answered).
+Last updated: 2026-09-13 (the design direction, P6 and P7 answered).
 
 ## For the solicitor
 
@@ -39,8 +39,7 @@ Last updated: 2026-09-13 (the design direction and P6 answered).
 | P3 | Delivery-fee policy values: base fee, distance bands, minimum and maximum, free-delivery threshold, small-basket surcharge and margin alert threshold. | M5 | ADR-0002 |
 | P4 | Typesense Cloud region, data-processing terms and budget (reconfirm before M14). | M14 | ADR-0010 |
 | P5 | Which domain name will we use for the email sender and web apps? (Error `type` codes use a URN, so they don't depend on it.) | M11 | M0 plan |
-| P7 | Do you want Dependabot or Renovate for dependency update pull requests? | M0 | M0 plan |
-| P8 | How long should dispatched outbox events be kept? They hold identifiers, not personal data, and help when investigating incidents. Until you decide, nothing is deleted. A suggested default is 30 days after dispatch. | M13 | ADR-0015 |
+| P8 | How long should dispatched outbox events be kept? They hold identifiers, not personal data, and help when investigating incidents; money questions are answered from the ledger, which is kept for 6 years, not from the outbox. Until you decide, nothing is deleted. **Recommendation:** keep dispatched events for 30 days, as a policy value so it can change without code, and never delete events that failed or haven't been dispatched. At about 2,000 orders a day that is roughly a million rows, which PostgreSQL handles easily. The founder isn't sure yet (2026-09-13), and it blocks nothing before M13, whose plan asks again. | M13 | ADR-0015 |
 
 ## Engineering decisions made under the §0 decision rule
 
@@ -68,6 +67,7 @@ Details that don't affect architecture, money, compliance, security or retention
 | Loom leaves the `warning` and `danger` roles open, so they keep their accessible signal colours (`#8A5A00`, `#B42318`). Earth Yellow becomes a graphics-only `success-stripe` role, and every corner radius is 2 px | ADR-0019 | Before M1 |
 | Loom's type scale (1.25 on 16 px) replaces Tailwind's sizes of the same names, from `text-sm` (13 px) to `text-4xl` (49 px): rem on the web, px on NativeWind. The web Button's labels use 16 px | ADR-0019 | Before M1 |
 | The typefaces come from pinned Fontsource packages through `@voltdrop/ui-tokens/fonts.css`, which every web app imports. The Expo apps keep the platform font until M6 | ADR-0019 | Before M1 |
+| Renovate's settings: `config:best-practices` (a 3-day minimum release age for npm, digests for Docker images and GitHub Actions, weekly lockfile maintenance), exact pins except peer dependencies, a weekly Monday-morning schedule in Europe/London time, and no automerge. Majors, and the Expo SDK with React, wait for approval on the Dependency Dashboard; non-major development dependencies arrive as one weekly pull request | ADR-0020 | Before M1 |
 
 ## Answered
 
@@ -75,5 +75,6 @@ Details that don't affect architecture, money, compliance, security or retention
 |---|---|---|
 | Kickoff (c)1 to (c)11 | Adopted in spec v1.1, see ADR-0002 to ADR-0011 | 2026-09-11 |
 | M0 decisions D1 to D10 | Approved as recommended in `docs/plans/M0-plan.md` | 2026-09-11 |
-| Design direction (spec §9) | Direction A, Loom (`docs/design/directions.md`). Its colours, type scale, radii, focus ring and self-hosted typefaces go into `packages/ui-tokens` in a follow-up pull request once M0's pull request #1 merges (ADR-0018) | 2026-09-13 |
+| Design direction (spec §9) | Direction A, Loom (`docs/design/directions.md`). Its colours, type scale, radii, focus ring and self-hosted typefaces are in `packages/ui-tokens`, applied in a follow-up pull request after M0 (ADR-0019) | 2026-09-13 |
 | P6: is the GitHub repository private? | No, it's public. CodeQL code scanning and GitHub-hosted Actions minutes are free for public repositories, so cost no longer shapes CI. The founder switched on CodeQL's default setup in the repository settings rather than waiting for M14, and its first analysis of `main` passed. Everything committed, `docs/` included, is visible to anyone | 2026-09-13 |
+| P7: Dependabot or Renovate? | Renovate, configured in `renovate.json` (ADR-0020). It acts once the founder installs the Renovate GitHub App for the repository | 2026-09-13 |

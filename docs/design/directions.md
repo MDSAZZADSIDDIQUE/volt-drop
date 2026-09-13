@@ -2,8 +2,8 @@
 
 Two directions for the VoltDrop design system (spec §9). Nothing is built until the founder picks one. After that choice, its colours, type and spacing become `packages/ui-tokens` (ADR-0018), and every app uses them.
 
-- **Status:** awaiting the founder's choice.
-- **Date:** 2026-09-11.
+- **Status:** Direction A (Loom), chosen by the founder on 2026-09-13. Direction B (Shopfront) stays below for reference.
+- **Date:** proposed 2026-09-11.
 
 Ground rules from the spec:
 - Ground every choice in the subject: cables and connectors, UK wiring colours, packaging, speed, local high streets.

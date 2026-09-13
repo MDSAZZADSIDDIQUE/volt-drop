@@ -1,0 +1,52 @@
+{
+  "$schema": "https://docs.renovatebot.com/renovate-schema.json",
+  "extends": [
+    "config:best-practices",
+    ":pinAllExceptPeerDependencies",
+    "helpers:pinGitHubActionDigestsToSemver",
+    ":timezone(Europe/London)",
+    ":label(dependencies)"
+  ],
+  "schedule": ["before 6am on monday"],
+  "prConcurrentLimit": 5,
+  "prHourlyLimit": 2,
+  "semanticCommits": "enabled",
+  "osvVulnerabilityAlerts": true,
+  "postUpdateOptions": ["pnpmDedupe"],
+  "packageRules": [
+    {
+      "description": "Non-major updates to development-only packages arrive together, in one weekly pull request.",
+      "matchDepTypes": ["devDependencies"],
+      "matchUpdateTypes": ["minor", "patch", "digest"],
+      "groupName": "development dependencies (non-major)"
+    },
+    {
+      "description": "Loom's self-hosted typefaces (ADR-0019) move together.",
+      "matchPackageNames": ["@fontsource/*", "@fontsource-variable/*"],
+      "groupName": "Fontsource typefaces"
+    },
+    {
+      "description": "The Expo SDK, React Native and React move together, at the versions the SDK pins (ADR-0001), so they wait for approval on the Dependency Dashboard.",
+      "matchPackageNames": [
+        "expo",
+        "expo-*",
+        "@expo/*",
+        "babel-preset-expo",
+        "react-native",
+        "react-native-*",
+        "nativewind",
+        "react",
+        "react-dom",
+        "@types/react",
+        "@types/react-dom"
+      ],
+      "groupName": "Expo SDK and React",
+      "dependencyDashboardApproval": true
+    },
+    {
+      "description": "Major versions need the founder's approval and an ADR (ADR-0001), so they wait on the Dependency Dashboard.",
+      "matchUpdateTypes": ["major"],
+      "dependencyDashboardApproval": true
+    }
+  ]
+}

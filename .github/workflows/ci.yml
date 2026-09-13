@@ -116,6 +116,11 @@ jobs:
           wait_for http://localhost:8081/status
           wait_for http://localhost:8082/status
           curl -sf http://localhost:4000/v1/ready
+          # The worker starts alongside the API, so give its log line a moment to arrive.
+          for _ in $(seq 1 30); do
+            if grep -q '"msg":"Worker started"' dev.log; then break; fi
+            sleep 2
+          done
           grep -q '"msg":"Worker started"' dev.log
       - name: Show the dev log
         if: always()

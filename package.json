@@ -9,8 +9,8 @@
   },
   "scripts": {
     "build": "turbo run build",
-    "dev": "turbo run dev --env-mode=loose",
-    "dev:api": "turbo run dev --filter=@voltdrop/api --env-mode=loose",
+    "dev": "turbo run dev --env-mode=loose --log-order=stream",
+    "dev:api": "turbo run dev --filter=@voltdrop/api --env-mode=loose --log-order=stream",
     "db:generate": "pnpm --filter @voltdrop/api db:generate",
     "db:migrate": "pnpm --filter @voltdrop/api db:migrate",
     "api:generate": "turbo run build --filter=@voltdrop/api && node apps/api/dist/openapi-document.js packages/api-client/openapi.json && pnpm --filter @voltdrop/api-client generate",

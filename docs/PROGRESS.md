@@ -91,12 +91,14 @@ Recorded as `TODO(M<n>)` in the code or the ADRs, and listed here.
 - When an AI coding agent runs `next dev`, Next.js writes `apps/customer-web/AGENTS.md` and a `CLAUDE.md` that imports it, pointing agents at the Next.js docs bundled in `node_modules/next/dist/docs/`. There's no setting to turn this off, so both are committed unchanged.
 - Claude Code loads the project settings (the hooks and deny rules) only when a session starts at the repository root.
 - The repository is public (open question P6): everything committed, `docs/` included, is visible to anyone.
+- Code scanning adds a `github-advanced-security` check to every pull request ("Code scanning AI findings" in the Actions tab), and it has failed on each one so far: pull request #2 and both commits of #3 (2026-09-13). It isn't one of this repository's workflows. It is GitHub's AI-powered security detection, in public preview, which needs a GitHub Copilot licence, and its log shows GitHub's model service refusing the request (`400 The requested model is not supported`) before it scans anything. Its findings are advisory, and `main` has no branch protection or rulesets, so it blocks nothing; the checks that matter are CI's three jobs and CodeQL. A GitHub community discussion reports the same failure on accounts without Copilot (https://github.com/orgs/community/discussions/204864).
 - `docs/Short - UK Technology Quick-Commerce Marketplace Requirements.pdf` is untracked. It isn't committed until the founder decides what to do with it, and because the repository is public, committing it would publish it.
 
 ## Next steps
 
 1. **The founder reviews and merges the Renovate pull request** (#3).
 2. **Once it's merged, the founder installs the Renovate GitHub App** for this repository (https://github.com/apps/renovate). Its first pull requests bring the packages held back by the release-age rule up to date; majors and the Expo SDK wait for approval on its Dependency Dashboard issue.
-3. **Run `/doctor`** in an interactive `claude` terminal, to confirm the settings, hooks and permission rules load with no warnings.
-4. **Decide P8** (how long dispatched outbox events are kept) before M13. The recommendation is in `docs/open-questions.md`.
-5. **M1, the walking skeleton, starts only with explicit approval** (`/start-milestone 1`). Its screens use the Loom tokens.
+3. **Switch off AI findings** in the repository settings (Advanced Security, then the AI findings toggle under Code scanning), so the failing `github-advanced-security` check stops appearing on every pull request. It can only work with a Copilot licence, and CodeQL keeps scanning either way. Its extra coverage (shell scripts, Dockerfiles, Terraform) is worth another look at M14.
+4. **Run `/doctor`** in an interactive `claude` terminal, to confirm the settings, hooks and permission rules load with no warnings.
+5. **Decide P8** (how long dispatched outbox events are kept) before M13. The recommendation is in `docs/open-questions.md`.
+6. **M1, the walking skeleton, starts only with explicit approval** (`/start-milestone 1`). Its screens use the Loom tokens.

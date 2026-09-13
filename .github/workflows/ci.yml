@@ -1,7 +1,7 @@
 # VoltDrop CI (M0 plan, step 9). Actions are pinned to commit SHAs (looked up on 2026-09-11); the
 # comment after each SHA is the release it points to.
-# TODO(M14): container scanning and an SBOM (spec §12). CodeQL needs no workflow here: the
-# repository is public, and the founder is switching on GitHub's default setup in its settings.
+# TODO(M14): container scanning and an SBOM (spec §12). CodeQL needs no workflow here: GitHub's
+# default setup runs it, switched on in the repository settings on 2026-09-13.
 name: CI
 
 on:

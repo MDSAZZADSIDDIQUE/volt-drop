@@ -65,6 +65,9 @@ Details that don't affect architecture, money, compliance, security or retention
 | The Claude Code file protection goes slightly beyond ADR-0009's minimum. The hook blocks a tool call it can't read (it fails closed). Reads of `.env.*.local` files are denied as well as `.env` and `.env.local`. The protected patterns that have no exceptions also get `Edit` deny rules, which cover shell redirections too | ADR-0009 (implementation notes) | M0 |
 | When an AI agent runs `next dev`, Next.js writes `AGENTS.md`, and a `CLAUDE.md` that imports it, into `apps/customer-web`; there's no setting to turn this off. Both are committed unchanged: they point agents at the docs for the installed Next.js version, and the web rules refer to them | M0 plan step 10 | M0 |
 | Every local service publishes its port on `127.0.0.1` rather than all interfaces, so Valkey (which needs no password) and PostgreSQL aren't reachable from whatever network the laptop is on. Found by the M0 security review | M0 step 12 (security review) | M0 |
+| Loom leaves the `warning` and `danger` roles open, so they keep their accessible signal colours (`#8A5A00`, `#B42318`). Earth Yellow becomes a graphics-only `success-stripe` role, and every corner radius is 2 px | ADR-0019 | Before M1 |
+| Loom's type scale (1.25 on 16 px) replaces Tailwind's sizes of the same names, from `text-sm` (13 px) to `text-4xl` (49 px): rem on the web, px on NativeWind. The web Button's labels use 16 px | ADR-0019 | Before M1 |
+| The typefaces come from pinned Fontsource packages through `@voltdrop/ui-tokens/fonts.css`, which every web app imports. The Expo apps keep the platform font until M6 | ADR-0019 | Before M1 |
 
 ## Answered
 
@@ -73,4 +76,4 @@ Details that don't affect architecture, money, compliance, security or retention
 | Kickoff (c)1 to (c)11 | Adopted in spec v1.1, see ADR-0002 to ADR-0011 | 2026-09-11 |
 | M0 decisions D1 to D10 | Approved as recommended in `docs/plans/M0-plan.md` | 2026-09-11 |
 | Design direction (spec §9) | Direction A, Loom (`docs/design/directions.md`). Its colours, type scale, radii, focus ring and self-hosted typefaces go into `packages/ui-tokens` in a follow-up pull request once M0's pull request #1 merges (ADR-0018) | 2026-09-13 |
-| P6: is the GitHub repository private? | No, it's public. CodeQL code scanning and GitHub-hosted Actions minutes are free for public repositories, so cost no longer shapes CI. The founder is switching on CodeQL's default setup in the repository settings now, rather than waiting for M14. Everything committed, `docs/` included, is visible to anyone | 2026-09-13 |
+| P6: is the GitHub repository private? | No, it's public. CodeQL code scanning and GitHub-hosted Actions minutes are free for public repositories, so cost no longer shapes CI. The founder switched on CodeQL's default setup in the repository settings rather than waiting for M14, and its first analysis of `main` passed. Everything committed, `docs/` included, is visible to anyone | 2026-09-13 |

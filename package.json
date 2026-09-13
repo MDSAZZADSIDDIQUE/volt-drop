@@ -1,0 +1,44 @@
+{
+  "name": "voltdrop",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "packageManager": "pnpm@11.26.0",
+  "engines": {
+    "node": ">=24.11.0 <25"
+  },
+  "scripts": {
+    "build": "turbo run build",
+    "dev": "turbo run dev --env-mode=loose --log-order=stream",
+    "dev:api": "turbo run dev --filter=@voltdrop/api --env-mode=loose --log-order=stream",
+    "db:generate": "pnpm --filter @voltdrop/api db:generate",
+    "db:migrate": "pnpm --filter @voltdrop/api db:migrate",
+    "api:generate": "turbo run build --filter=@voltdrop/api && node apps/api/dist/openapi-document.js packages/api-client/openapi.json && pnpm --filter @voltdrop/api-client generate",
+    "lint": "turbo run lint && pnpm lint:boundaries",
+    "lint:boundaries": "depcruise --config .dependency-cruiser.cjs packages apps",
+    "typecheck": "turbo run typecheck",
+    "test": "turbo run test && pnpm test:hooks",
+    "test:hooks": "node --test .claude/hooks/hooks.test.mjs",
+    "test:int": "turbo run test:int --env-mode=loose",
+    "check:migrations": "node scripts/check-migrations.mjs",
+    "format": "prettier --write .",
+    "format:check": "prettier --check .",
+    "infra:up": "docker compose -f infra/docker/docker-compose.yml up --detach --wait && node scripts/infra-init.mjs",
+    "infra:down": "docker compose -f infra/docker/docker-compose.yml down",
+    "infra:reset": "docker compose -f infra/docker/docker-compose.yml down --volumes",
+    "infra:logs": "docker compose -f infra/docker/docker-compose.yml logs --follow",
+    "infra:smoke": "node scripts/s3-smoke.mjs",
+    "prepare": "lefthook install"
+  },
+  "devDependencies": {
+    "@aws-sdk/client-s3": "3.1129.0",
+    "@aws-sdk/s3-presigned-post": "3.1129.0",
+    "@aws-sdk/s3-request-presigner": "3.1129.0",
+    "@voltdrop/config": "workspace:*",
+    "dependency-cruiser": "18.2.0",
+    "lefthook": "2.1.12",
+    "prettier": "3.9.6",
+    "turbo": "2.10.12",
+    "typescript": "6.0.3"
+  }
+}

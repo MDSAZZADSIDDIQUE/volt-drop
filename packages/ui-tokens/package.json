@@ -1,0 +1,33 @@
+{
+  "name": "@voltdrop/ui-tokens",
+  "version": "0.0.0",
+  "private": true,
+  "description": "VoltDrop design tokens, defined once and emitted as CSS variables and a Tailwind 4 theme for web and a Tailwind 3 preset for NativeWind (ADR-0018).",
+  "type": "module",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.js"
+    },
+    "./tokens.css": "./dist/tokens.css",
+    "./theme.css": "./dist/theme.css",
+    "./tailwind-preset": "./dist/tailwind-preset.cjs"
+  },
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "tsc -p tsconfig.build.json && node scripts/emit.mjs",
+    "typecheck": "tsc -p tsconfig.json",
+    "lint": "eslint . --max-warnings 0",
+    "test": "vitest run"
+  },
+  "devDependencies": {
+    "@types/node": "24.13.4",
+    "@voltdrop/config": "workspace:*",
+    "eslint": "10.10.0",
+    "typescript": "6.0.3",
+    "vite": "8.3.0",
+    "vitest": "4.1.11"
+  }
+}

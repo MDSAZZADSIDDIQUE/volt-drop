@@ -1,0 +1,130 @@
+# VoltDrop CI (M0 plan, step 9). Actions are pinned to commit SHAs (looked up on 2026-09-11); the
+# comment after each SHA is the release it points to.
+# TODO(M14): CodeQL or Semgrep, container scanning and an SBOM (spec §12; open question P6).
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+# A newer push to the same branch cancels the run in progress (the repository is private, so
+# Actions minutes are metered).
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  # No tool telemetry leaves the runners.
+  DO_NOT_TRACK: '1'
+  TURBO_TELEMETRY_DISABLED: '1'
+  NEXT_TELEMETRY_DISABLED: '1'
+  EXPO_NO_TELEMETRY: '1'
+
+jobs:
+  verify:
+    name: Lint, typecheck, test, build and drift checks
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 0 # the migration check compares with main
+          # This job builds and runs pull-request code, so don't leave the token in .git/config.
+          persist-credentials: false
+      - uses: pnpm/action-setup@ea17c68df8912ef543352723c149a84f56e3d413 # v6.1.0
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version-file: .node-version
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm format:check
+      - name: Lint and module boundaries
+        run: pnpm lint
+      - run: pnpm typecheck
+      - name: Unit tests (the money and VAT coverage threshold is 100%)
+        run: pnpm test
+      - run: pnpm build
+      - name: The API client matches the API (OpenAPI drift)
+        run: |
+          pnpm api:generate
+          git diff --exit-code -- packages/api-client
+          test -z "$(git status --porcelain -- packages/api-client)"
+      - name: Shipped migrations are unchanged
+        # A pull request is compared with main; a push to main with the commit it replaced.
+        run: node scripts/check-migrations.mjs "$BASE"
+        env:
+          BASE: ${{ github.event_name == 'push' && github.event.before || 'origin/main' }}
+      - name: No high or critical advisories
+        run: pnpm audit --audit-level high
+
+  integration:
+    name: Integration tests (Testcontainers)
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          # These jobs build and run pull-request code, so don't leave the token in .git/config.
+          persist-credentials: false
+      - uses: pnpm/action-setup@ea17c68df8912ef543352723c149a84f56e3d413 # v6.1.0
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version-file: .node-version
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm test:int
+
+  smoke:
+    name: A fresh clone runs (M0 acceptance)
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          # These jobs build and run pull-request code, so don't leave the token in .git/config.
+          persist-credentials: false
+      - uses: pnpm/action-setup@ea17c68df8912ef543352723c149a84f56e3d413 # v6.1.0
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version-file: .node-version
+      - name: The documented commands, exactly
+        run: |
+          pnpm install
+          pnpm infra:up
+          pnpm db:migrate
+      - name: Local S3 accepts presigned uploads and answers CORS (ADR-0010)
+        run: pnpm infra:smoke
+      - name: pnpm dev starts the API, the worker, three web apps and two Metro servers
+        run: |
+          pnpm dev > dev.log 2>&1 &
+          wait_for() {
+            for _ in $(seq 1 120); do
+              if curl -sf "$1" > /dev/null; then echo "up: $1"; return 0; fi
+              sleep 5
+            done
+            echo "not up after 10 minutes: $1"
+            return 1
+          }
+          wait_for http://localhost:4000/v1/health
+          wait_for http://localhost:3000/
+          wait_for http://localhost:5173/
+          wait_for http://localhost:5174/
+          wait_for http://localhost:8081/status
+          wait_for http://localhost:8082/status
+          curl -sf http://localhost:4000/v1/ready
+          # The worker starts alongside the API, so give its log line a moment to arrive.
+          for _ in $(seq 1 30); do
+            if grep -q '"msg":"Worker started"' dev.log; then break; fi
+            sleep 2
+          done
+          grep -q '"msg":"Worker started"' dev.log
+      - name: Show the dev log
+        if: always()
+        run: tail -n 150 dev.log || true
+      - name: Stop the local services
+        if: always()
+        run: pnpm infra:down

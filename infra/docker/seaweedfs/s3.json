@@ -1,0 +1,14 @@
+{
+  "identities": [
+    {
+      "name": "voltdrop-local",
+      "credentials": [
+        {
+          "accessKey": "voltdrop-local",
+          "secretKey": "voltdrop-local-secret"
+        }
+      ],
+      "actions": ["Admin", "Read", "List", "Tagging", "Write"]
+    }
+  ]
+}

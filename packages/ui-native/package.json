@@ -1,0 +1,32 @@
+{
+  "name": "@voltdrop/ui-native",
+  "version": "0.0.0",
+  "private": true,
+  "description": "VoltDrop React Native components, styled with NativeWind and the ui-tokens preset (spec §9, ADR-0018). Shipped as TypeScript source, so each app's Metro and NativeWind compile it.",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "scripts": {
+    "typecheck": "tsc -p tsconfig.json",
+    "lint": "eslint . --max-warnings 0"
+  },
+  "peerDependencies": {
+    "nativewind": "~4.2.6",
+    "react": "~19.2.3",
+    "react-native": "~0.86.3"
+  },
+  "devDependencies": {
+    "@types/react": "19.2.18",
+    "@voltdrop/config": "workspace:*",
+    "eslint": "10.10.0",
+    "nativewind": "4.2.6",
+    "react": "19.2.3",
+    "react-native": "0.86.3",
+    "react-native-css-interop": "0.2.6",
+    "react-native-reanimated": "4.5.1",
+    "react-native-safe-area-context": "5.7.0",
+    "react-native-worklets": "0.10.1",
+    "tailwindcss": "3.4.19",
+    "typescript": "6.0.3"
+  }
+}

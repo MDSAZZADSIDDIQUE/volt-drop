@@ -1,0 +1,36 @@
+{
+  "name": "@voltdrop/merchant-portal",
+  "version": "0.0.0",
+  "private": true,
+  "description": "VoltDrop merchant portal for the web (Vite, React, TanStack Router and Query; spec §4). Product screens arrive in M3.",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview",
+    "typecheck": "tsc -p tsconfig.json",
+    "lint": "eslint . --max-warnings 0"
+  },
+  "dependencies": {
+    "@tanstack/react-query": "5.102.8",
+    "@tanstack/react-router": "1.170.34",
+    "@voltdrop/api-client": "workspace:*",
+    "@voltdrop/i18n": "workspace:*",
+    "@voltdrop/ui-web": "workspace:*",
+    "react": "19.2.3",
+    "react-dom": "19.2.3",
+    "use-intl": "4.14.3"
+  },
+  "devDependencies": {
+    "@tailwindcss/vite": "4.3.3",
+    "@types/react": "19.2.18",
+    "@types/react-dom": "19.2.7",
+    "@vitejs/plugin-react": "6.1.1",
+    "@voltdrop/config": "workspace:*",
+    "@voltdrop/ui-tokens": "workspace:*",
+    "eslint": "10.10.0",
+    "tailwindcss": "4.3.3",
+    "typescript": "6.0.3",
+    "vite": "8.3.0"
+  }
+}

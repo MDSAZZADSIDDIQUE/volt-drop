@@ -1,0 +1,42 @@
+{
+  "name": "@voltdrop/api-client",
+  "version": "0.0.0",
+  "private": true,
+  "description": "Typed VoltDrop API client: fetch functions and TanStack Query hooks generated from the OpenAPI document (spec §4).",
+  "type": "module",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.js"
+    }
+  },
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "tsc -p tsconfig.build.json",
+    "dev": "tsc -p tsconfig.build.json --watch --preserveWatchOutput",
+    "generate": "orval",
+    "typecheck": "tsc -p tsconfig.json",
+    "lint": "eslint . --max-warnings 0",
+    "test": "vitest run"
+  },
+  "dependencies": {
+    "@voltdrop/domain": "workspace:*"
+  },
+  "peerDependencies": {
+    "@tanstack/react-query": "^5.102.8",
+    "react": "~19.2.3"
+  },
+  "devDependencies": {
+    "@tanstack/react-query": "5.102.8",
+    "@types/react": "19.2.18",
+    "@voltdrop/config": "workspace:*",
+    "eslint": "10.10.0",
+    "orval": "8.31.0",
+    "react": "19.2.3",
+    "typescript": "6.0.3",
+    "vite": "8.3.0",
+    "vitest": "4.1.11"
+  }
+}

@@ -1,0 +1,11 @@
+{
+  "expo": {
+    "name": "VoltDrop",
+    "slug": "voltdrop-customer",
+    "scheme": "voltdrop",
+    "version": "0.0.0",
+    "orientation": "portrait",
+    "userInterfaceStyle": "automatic",
+    "plugins": ["expo-router"]
+  }
+}

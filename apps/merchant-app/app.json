@@ -1,0 +1,11 @@
+{
+  "expo": {
+    "name": "VoltDrop for merchants",
+    "slug": "voltdrop-merchant",
+    "scheme": "voltdrop-merchant",
+    "version": "0.0.0",
+    "orientation": "portrait",
+    "userInterfaceStyle": "automatic",
+    "plugins": ["expo-router"]
+  }
+}

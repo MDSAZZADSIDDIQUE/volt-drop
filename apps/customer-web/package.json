@@ -1,0 +1,37 @@
+{
+  "name": "@voltdrop/customer-web",
+  "version": "0.0.0",
+  "private": true,
+  "description": "VoltDrop customer website (Next.js 16 App Router, spec §4). Product screens arrive in M1.",
+  "type": "module",
+  "scripts": {
+    "dev": "next dev --port 3000",
+    "build": "next build",
+    "start": "next start --port 3000",
+    "typecheck": "next typegen && tsc -p tsconfig.json",
+    "lint": "eslint . --max-warnings 0"
+  },
+  "dependencies": {
+    "@tanstack/react-query": "5.102.8",
+    "@voltdrop/api-client": "workspace:*",
+    "@voltdrop/i18n": "workspace:*",
+    "@voltdrop/ui-web": "workspace:*",
+    "next": "16.3.4",
+    "next-intl": "4.14.3",
+    "react": "19.2.3",
+    "react-dom": "19.2.3"
+  },
+  "devDependencies": {
+    "@next/eslint-plugin-next": "16.3.4",
+    "@tailwindcss/postcss": "4.3.3",
+    "@types/node": "24.13.4",
+    "@types/react": "19.2.18",
+    "@types/react-dom": "19.2.7",
+    "@voltdrop/config": "workspace:*",
+    "@voltdrop/ui-tokens": "workspace:*",
+    "eslint": "10.10.0",
+    "postcss": "8.5.28",
+    "tailwindcss": "4.3.3",
+    "typescript": "6.0.3"
+  }
+}

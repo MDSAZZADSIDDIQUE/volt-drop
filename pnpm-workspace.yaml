@@ -1,0 +1,26 @@
+packages:
+  - apps/*
+  - packages/*
+
+# Pin exact versions (spec §6).
+saveExact: true
+
+# pnpm refuses dependency install scripts unless they are reviewed here (strictDepBuilds is on by
+# default in pnpm 11). Add a package only after checking what its script does.
+allowBuilds:
+  lefthook: true
+  # Only checks that the platform binary installed (node postinstall.js); needed by unplugin-swc.
+  '@swc/core': true
+  # Denied: install analytics that report to Scarf (pulled in by swagger-ui-dist); not needed to run.
+  '@scarf/scarf': false
+  # Denied: not needed at runtime by the OpenTelemetry exporters that pull it in.
+  protobufjs: false
+  # Only verifies and links its platform binary (node install.js); needed by vite and drizzle-kit.
+  esbuild: true
+  # Denied: optional native speed-ups for SSH Docker hosts, pulled in by testcontainers; not needed.
+  cpu-features: false
+  ssh2: false
+  # Denied: its install script only compiles from source when npm_config_build_from_source is set;
+  # the binary ships prebuilt as an optional dependency (@parcel/watcher-win32-x64 and so on).
+  # Pulled in by next-intl.
+  '@parcel/watcher': false

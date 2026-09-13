@@ -1,0 +1,12 @@
+@import 'tailwindcss';
+@import '@voltdrop/ui-tokens/tokens.css';
+@import '@voltdrop/ui-tokens/theme.css';
+
+/* Tailwind skips node_modules, so the shared components' class names are registered here. */
+@source '../../../../packages/ui-web/src';
+
+@layer base {
+  body {
+    @apply bg-background font-sans text-foreground;
+  }
+}
